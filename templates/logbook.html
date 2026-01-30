@@ -14,10 +14,10 @@
 
         <ul class="links">
             <li><a href="{{ url_for('home') }}">Home</a></li>
-            <li><a href="{{ url_for('logbook') }}">Logbook</a></li>
-            <li><a href="{{url_for('calendar')}}">Calendar</a></li>
-            <li><a href="{{url_for('music')}}">Music</a></li>
-            <li><a href="{{url_for('insights')}}">Insights</a></li>
+            <li><a href="{{ url_for('logbook.logbook_home') }}">Logbook</a></li>
+            <li><a href="{{ url_for('calendar') }}">Calendar</a></li>
+            <li><a href="{{ url_for('music') }}">Music</a></li>
+            <li><a href="{{ url_for('insights') }}">Insights</a></li>
         </ul>
 
         <a href="#" class="action_button">Login</a>
@@ -30,20 +30,21 @@
 
         <ul class="dropdown_menu">
             <li><a href="{{ url_for('home') }}">Home</a></li>
-            <li><a href="{{ url_for('logbook') }}">Logbook</a></li>
-            <li><a href="{{url_for('calendar')}}">Calendar</a></li>
-            <li><a href="{{url_for('music')}}">Music</a></li>
-            <li><a href="{{url_for('insights')}}">Insights</a></li>
+            <li><a href="{{ url_for('logbook.logbook_home') }}">Logbook</a></li>
+            <li><a href="{{ url_for('calendar') }}">Calendar</a></li>
+            <li><a href="{{ url_for('music') }}">Music</a></li>
+            <li><a href="{{ url_for('insights') }}">Insights</a></li>
             <li><a href="#" class="action_button">Login</a></li>
         </ul>
     </nav>
 </header>
+
     <main>
         <h1>SELECT A CATEGORY TO LOG</h1>
         <div class="select-card">
-            <a href="{{ url_for('log_food') }}" class="card-option">Food</a>
-            <a href="{{ url_for('log_exercise') }}" class="card-option">Exercise</a>
-            <a href="{{ url_for('log_finances') }}" class="card-option">Finances</a>
+            <a href="{{ url_for('logbook.logbook_food') }}" class="card-option">Food</a>
+            <a href="{{ url_for('logbook.logbook_exercise') }}" class="card-option">Exercise</a>
+            <a href="{{ url_for('logbook.logbook_finances') }}" class="card-option">Finances</a>
         </div>
     </main>
     <script src="{{ url_for('static', filename='navbar.js') }}"></script>

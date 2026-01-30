@@ -2,6 +2,8 @@ import flask
 from flask import Flask, render_template
 from model.repository import Repository
 import os
+from controllers.logbook import logbook_bp
+
 
 
 
@@ -19,6 +21,8 @@ repo=Repository(
     ensure_schema=True
     )
 
+app.register_blueprint(logbook_bp)
+
 @app.route("/")
 def home():
     return render_template('index.html')
@@ -34,26 +38,6 @@ def music():
 @app.route("/insights")
 def insights():
     return render_template('insights.html')
-
-@app.route('/logbook')
-def logbook():
-    return render_template('logbook.html')
-
-@app.route('/logbook/food')
-def log_food():
-    return render_template('log_food.html')
-
-@app.route('/logbook/exercise')
-def log_exercise():
-    return render_template('log_exercise.html')
-
-@app.route('/logbook/mood')
-def log_mood():
-    return render_template('log_mood.html')
-
-@app.route('/logbook/finances')
-def log_finances():
-    return render_template('log_finances.html')
 
 if __name__=="__main__":
     app.run(debug=True)

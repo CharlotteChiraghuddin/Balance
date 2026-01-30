@@ -15,10 +15,10 @@
 
         <ul class="links">
             <li><a href="{{ url_for('home') }}">Home</a></li>
-            <li><a href="{{ url_for('logbook') }}">Logbook</a></li>
-            <li><a href="{{url_for('calendar')}}">Calendar</a></li>
-            <li><a href="{{url_for('music')}}">Music</a></li>
-            <li><a href="{{url_for('insights')}}">Insights</a></li>
+            <li><a href="{{ url_for('logbook.logbook_home') }}">Logbook</a></li>
+            <li><a href="{{ url_for('calendar') }}">Calendar</a></li>
+            <li><a href="{{ url_for('music') }}">Music</a></li>
+            <li><a href="{{ url_for('insights') }}">Insights</a></li>
         </ul>
 
         <a href="#" class="action_button">Login</a>
@@ -31,14 +31,15 @@
 
         <ul class="dropdown_menu">
             <li><a href="{{ url_for('home') }}">Home</a></li>
-            <li><a href="{{ url_for('logbook') }}">Logbook</a></li>
-            <li><a href="{{url_for('calendar')}}">Calendar</a></li>
-            <li><a href="{{url_for('music')}}">Music</a></li>
-            <li><a href="{{url_for('insights')}}">Insights</a></li>
+            <li><a href="{{ url_for('logbook.logbook_home') }}">Logbook</a></li>
+            <li><a href="{{ url_for('calendar') }}">Calendar</a></li>
+            <li><a href="{{ url_for('music') }}">Music</a></li>
+            <li><a href="{{ url_for('insights') }}">Insights</a></li>
             <li><a href="#" class="action_button">Login</a></li>
         </ul>
     </nav>
 </header>
+
 
 <main>
     <div class="carousel">

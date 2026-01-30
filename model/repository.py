@@ -125,49 +125,49 @@ class Repository:
         finally:
             conn.close()
 
-#------------- CRUD FOR USERS ----------------
+    #------------- CRUD FOR USERS ----------------
 
-def add_user(self, first_name:str, last_name:str,email: str)->User:
-    first_name= first_name.strip()
-    last_name= last_name.strip()
-    email= email.strip()
-    insert_sql="""
-    INSERT INTO users (first_name, last_name, email)
-    VALUES (%s, %s, %s)
-    """
-    conn= self._get_conn()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(insert_sql, (first_name, last_name, email))
-            conn.commit()
-            user_id= cur.lastrowid
-            return User(id=user_id, first_name=first_name, last_name=last_name, email=email)
-    finally:
-        conn.close()
+    def add_user(self, first_name:str, last_name:str,email: str)->User:
+        first_name= first_name.strip()
+        last_name= last_name.strip()
+        email= email.strip()
+        insert_sql="""
+        INSERT INTO users (first_name, last_name, email)
+        VALUES (%s, %s, %s)
+        """
+        conn= self._get_conn()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(insert_sql, (first_name, last_name, email))
+                conn.commit()
+                user_id= cur.lastrowid
+                return User(id=user_id, first_name=first_name, last_name=last_name, email=email)
+        finally:
+            conn.close()
 
-def list_all_users(self) -> List[User]:
-    select_sql = "SELECT id, first_name, last_name, email FROM users"
-    conn = self._get_conn()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(select_sql)
-            rows = cur.fetchall()
-            return [User(id=row[0], first_name=row[1], last_name=row[2], email=row[3]) for row in rows]
-    finally:
-        conn.close()
-def get_user_by_id(self, user_id: int) -> Optional[User]:
-    select_sql = "SELECT id, first_name, last_name, email FROM users WHERE id = %s"
-    conn = self._get_conn()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(select_sql, (user_id,))
-            row = cur.fetchone()
-            if row:
-                return User(id=row[0], first_name=row[1], last_name=row[2], email=row[3])
-            return None
-    finally:
-        conn.close()
-    
+    def list_all_users(self) -> List[User]:
+        select_sql = "SELECT id, first_name, last_name, email FROM users"
+        conn = self._get_conn()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(select_sql)
+                rows = cur.fetchall()
+                return [User(id=row[0], first_name=row[1], last_name=row[2], email=row[3]) for row in rows]
+        finally:
+            conn.close()
+    def get_user_by_id(self, user_id: int) -> Optional[User]:
+        select_sql = "SELECT id, first_name, last_name, email FROM users WHERE id = %s"
+        conn = self._get_conn()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(select_sql, (user_id,))
+                row = cur.fetchone()
+                if row:
+                    return User(id=row[0], first_name=row[1], last_name=row[2], email=row[3])
+                return None
+        finally:
+            conn.close()
+        
     def update_user_email(self, user_id: int, new_email: str) -> bool:
         update_sql = "UPDATE users SET email = %s WHERE id = %s"
         conn = self._get_conn()
@@ -189,186 +189,186 @@ def get_user_by_id(self, user_id: int) -> Optional[User]:
         finally:
             conn.close()
     
-#------------- CRUD FOR journal_day ----------------
+    #------------- CRUD FOR journal_day ----------------
 
-def add_journal_day(self, user_id: int, date: str, mood: str, reflection: str) -> JournalDay:
-    insert_sql = """
-        INSERT INTO journal_day (user_id, date, mood, reflection)
-        VALUES (%s, %s, %s, %s)
-    """
+    def add_journal_day(self, user_id: int, date: str, mood: str, reflection: str) -> JournalDay:
+        insert_sql = """
+            INSERT INTO journal_day (user_id, date, mood, reflection)
+            VALUES (%s, %s, %s, %s)
+        """
 
-    conn = self.get_conn()
+        conn = self.get_conn()
 
-    try:
-        with conn.cursor() as cur:
-            cur.execute(insert_sql, (user_id, date, mood, reflection))
-            conn.commit()
-            journal_day_id = cur.lastrowid
-            return(journal_day_id, user_id, date, mood, reflection)
-    finally:
-        conn.close()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(insert_sql, (user_id, date, mood, reflection))
+                conn.commit()
+                journal_day_id = cur.lastrowid
+                return(journal_day_id, user_id, date, mood, reflection)
+        finally:
+            conn.close()
 
-def get_journal_id_by_date(self, date: str):
-    select_sql = """
-        SELECT id FROM journal_day WHERE date = %s
-    """
+    def get_journal_id_by_date(self, date: str):
+        select_sql = """
+            SELECT id FROM journal_day WHERE date = %s
+        """
 
-    conn = self.get_conn()
+        conn = self.get_conn()
 
-    try:
-        with conn.cursor() as cur:
-            cur.execute(select_sql, (date,))
-            row = cur.fetchone()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(select_sql, (date,))
+                row = cur.fetchone()
 
-            if row:
-                return row[0]   # journal_day_id
-            else:
-                return None
-    finally:
-        conn.close()
+                if row:
+                    return row[0]   # journal_day_id
+                else:
+                    return None
+        finally:
+            conn.close()
 
-#------------- CRUD FOR Food ----------------
-        
-def add_food(self, journal_day_id: int, name: str, calories: int, meal_type: str) -> Food:
-    insert_sql = """
-        INSERT INTO food (journal_day_id, name, calories, meal_type)
-        VALUES (%s, %s, %s, %s)
-    """
+    #------------- CRUD FOR Food ----------------
+            
+    def add_food(self, journal_day_id: int, name: str, calories: int, meal_type: str) -> Food:
+        insert_sql = """
+            INSERT INTO food (journal_day_id, name, calories, meal_type)
+            VALUES (%s, %s, %s, %s)
+        """
 
-    conn = self.get_conn()
+        conn = self.get_conn()
 
-    try:
-        with conn.cursor() as cur:
-            cur.execute(insert_sql, (journal_day_id, name, calories, meal_type))
-            conn.commit()
-            food_id = cur.lastrowid
-            return Food(food_id=food_id, journal_day_id=journal_day_id, name=name, calories=calories, meal_type=meal_type)
-    finally:
-        conn.close()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(insert_sql, (journal_day_id, name, calories, meal_type))
+                conn.commit()
+                food_id = cur.lastrowid
+                return Food(food_id=food_id, journal_day_id=journal_day_id, name=name, calories=calories, meal_type=meal_type)
+        finally:
+            conn.close()
 
-def list_food_by_journal_day(self, journal_day_id: int) -> List[Food]:
-    select_sql = """
-        SELECT id, name, calories, meal_type FROM food WHERE journal_day_id = %s
-    """
+    def list_food_by_journal_day(self, journal_day_id: int) -> List[Food]:
+        select_sql = """
+            SELECT id, name, calories, meal_type FROM food WHERE journal_day_id = %s
+        """
 
-    conn = self.get_conn()
+        conn = self.get_conn()
 
-    try:
-        with conn.cursor() as cur:
-            cur.execute(select_sql, (journal_day_id,))
-            rows = cur.fetchall()
-            return [Food(food_id=row[0], journal_day_id=journal_day_id, name=row[1], calories=row[2], meal_type=row[3]) for row in rows]
-    finally:
-        conn.close()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(select_sql, (journal_day_id,))
+                rows = cur.fetchall()
+                return [Food(food_id=row[0], journal_day_id=journal_day_id, name=row[1], calories=row[2], meal_type=row[3]) for row in rows]
+        finally:
+            conn.close()
 
-def delete_food(self, food_id: int) -> bool:
-    delete_sql = """
-        DELETE FROM food WHERE id = %s
-    """
+    def delete_food(self, food_id: int) -> bool:
+        delete_sql = """
+            DELETE FROM food WHERE id = %s
+        """
 
-    conn = self.get_conn()
+        conn = self.get_conn()
 
-    try:
-        with conn.cursor() as cur:
-            cur.execute(delete_sql, (food_id,))
-            conn.commit()
-            return cur.rowcount > 0
-    finally:
-        conn.close()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(delete_sql, (food_id,))
+                conn.commit()
+                return cur.rowcount > 0
+        finally:
+            conn.close()
 
-#------------- CRUD FOR Transaction ----------------
-def add_transaction(self, journal_day_id: int, name: str, amount: int, category: str) -> Transaction:
-    insert_sql = """
-        INSERT INTO transactions (journal_day_id, name, amount, category)
-        VALUES (%s, %s, %s, %s)
-    """
+    #------------- CRUD FOR Transaction ----------------
+    def add_transaction(self, journal_day_id: int, name: str, amount: int, category: str) -> Transaction:
+        insert_sql = """
+            INSERT INTO transactions (journal_day_id, name, amount, category)
+            VALUES (%s, %s, %s, %s)
+        """
 
-    conn = self.get_conn()
+        conn = self.get_conn()
 
-    try:
-        with conn.cursor() as cur:
-            cur.execute(insert_sql, (journal_day_id, name, amount, category))
-            conn.commit()
-            transaction_id = cur.lastrowid
-            return Transaction(transaction_id=transaction_id, journal_day_id=journal_day_id, name=name, amount=amount, category=category)
-    finally:
-        conn.close()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(insert_sql, (journal_day_id, name, amount, category))
+                conn.commit()
+                transaction_id = cur.lastrowid
+                return Transaction(transaction_id=transaction_id, journal_day_id=journal_day_id, name=name, amount=amount, category=category)
+        finally:
+            conn.close()
 
-def list_transactions_by_journal_day(self, journal_day_id: int) -> List[Transaction]:
-    select_sql = """
-        SELECT id, name, amount, category FROM transactions WHERE journal_day_id = %s
-    """
+    def list_transactions_by_journal_day(self, journal_day_id: int) -> List[Transaction]:
+        select_sql = """
+            SELECT id, name, amount, category FROM transactions WHERE journal_day_id = %s
+        """
 
-    conn = self.get_conn()
+        conn = self.get_conn()
 
-    try:
-        with conn.cursor() as cur:
-            cur.execute(select_sql, (journal_day_id,))
-            rows = cur.fetchall()
-            return [Transaction(transaction_id=row[0], journal_day_id=journal_day_id, name=row[1], amount=row[2], category=row[3]) for row in rows]
-    finally:
-        conn.close()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(select_sql, (journal_day_id,))
+                rows = cur.fetchall()
+                return [Transaction(transaction_id=row[0], journal_day_id=journal_day_id, name=row[1], amount=row[2], category=row[3]) for row in rows]
+        finally:
+            conn.close()
 
-def delete_transaction(self, transaction_id: int) -> bool:
-    delete_sql = """
-        DELETE FROM transactions WHERE id = %s
-    """
+    def delete_transaction(self, transaction_id: int) -> bool:
+        delete_sql = """
+            DELETE FROM transactions WHERE id = %s
+        """
 
-    conn = self.get_conn()
+        conn = self.get_conn()
 
-    try:
-        with conn.cursor() as cur:
-            cur.execute(delete_sql, (transaction_id,))
-            conn.commit()
-            return cur.rowcount > 0
-    finally:
-        conn.close()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(delete_sql, (transaction_id,))
+                conn.commit()
+                return cur.rowcount > 0
+        finally:
+            conn.close()
 
-#------------- CRUD FOR Exercise ----------------
-def add_exercise(self, journal_day_id: int, name: str, duration: int, calories: int) -> Exercise:
-    insert_sql = """
-        INSERT INTO exercise (journal_day_id, name, duration, calories)
-        VALUES (%s, %s, %s, %s)
-    """
+    #------------- CRUD FOR Exercise ----------------
+    def add_exercise(self, journal_day_id: int, name: str, duration: int, calories: int) -> Exercise:
+        insert_sql = """
+            INSERT INTO exercise (journal_day_id, name, duration, calories)
+            VALUES (%s, %s, %s, %s)
+        """
 
-    conn = self.get_conn()
+        conn = self.get_conn()
 
-    try:
-        with conn.cursor() as cur:
-            cur.execute(insert_sql, (journal_day_id, name, duration, calories))
-            conn.commit()
-            exercise_id = cur.lastrowid
-            return Exercise(exercise_id=exercise_id, journal_day_id=journal_day_id, name=name, duration=duration, calories=calories)
-    finally:
-        conn.close()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(insert_sql, (journal_day_id, name, duration, calories))
+                conn.commit()
+                exercise_id = cur.lastrowid
+                return Exercise(exercise_id=exercise_id, journal_day_id=journal_day_id, name=name, duration=duration, calories=calories)
+        finally:
+            conn.close()
 
-def list_exercises_by_journal_day(self, journal_day_id: int) -> List[Exercise]:
-    select_sql = """
-        SELECT id, name, duration, calories FROM exercise WHERE journal_day_id = %s
-    """
+    def list_exercises_by_journal_day(self, journal_day_id: int) -> List[Exercise]:
+        select_sql = """
+            SELECT id, name, duration, calories FROM exercise WHERE journal_day_id = %s
+        """
 
-    conn = self.get_conn()
+        conn = self.get_conn()
 
-    try:
-        with conn.cursor() as cur:
-            cur.execute(select_sql, (journal_day_id,))
-            rows = cur.fetchall()
-            return [Exercise(exercise_id=row[0], journal_day_id=journal_day_id, name=row[1], duration=row[2], calories=row[3]) for row in rows]
-    finally:
-        conn.close()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(select_sql, (journal_day_id,))
+                rows = cur.fetchall()
+                return [Exercise(exercise_id=row[0], journal_day_id=journal_day_id, name=row[1], duration=row[2], calories=row[3]) for row in rows]
+        finally:
+            conn.close()
 
-def delete_exercise(self, exercise_id: int) -> bool:
-    delete_sql = """
-        DELETE FROM exercise WHERE id = %s
-    """
+    def delete_exercise(self, exercise_id: int) -> bool:
+        delete_sql = """
+            DELETE FROM exercise WHERE id = %s
+        """
 
-    conn = self.get_conn()
+        conn = self.get_conn()
 
-    try:
-        with conn.cursor() as cur:
-            cur.execute(delete_sql, (exercise_id,))
-            conn.commit()
-            return cur.rowcount > 0
-    finally:
-        conn.close()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(delete_sql, (exercise_id,))
+                conn.commit()
+                return cur.rowcount > 0
+        finally:
+            conn.close()
 
