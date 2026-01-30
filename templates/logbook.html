@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='logbook.css') }}">
+    <title>Document</title>
+</head>
+<body>
+    <header>
+    <nav class="navbar">
+        <div class="logo"><a href="#">BALANCE</a></div>
+
+        <ul class="links">
+            <li><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a href="{{ url_for('logbook') }}">Logbook</a></li>
+            <li><a href="{{url_for('calendar')}}">Calendar</a></li>
+            <li><a href="{{url_for('music')}}">Music</a></li>
+            <li><a href="{{url_for('insights')}}">Insights</a></li>
+        </ul>
+
+        <a href="#" class="action_button">Login</a>
+
+        <div class="toggle_btn">
+            <button class="more">
+                <img src="../static/assets/images/menu.png" alt="menu icon">
+            </button>
+        </div>
+
+        <ul class="dropdown_menu">
+            <li><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a href="{{ url_for('logbook') }}">Logbook</a></li>
+            <li><a href="{{url_for('calendar')}}">Calendar</a></li>
+            <li><a href="{{url_for('music')}}">Music</a></li>
+            <li><a href="{{url_for('insights')}}">Insights</a></li>
+            <li><a href="#" class="action_button">Login</a></li>
+        </ul>
+    </nav>
+</header>
+    <main>
+        <h1>SELECT A CATEGORY TO LOG</h1>
+        <div class="select-card">
+            <a href="{{ url_for('log_food') }}" class="card-option">Food</a>
+            <a href="{{ url_for('log_exercise') }}" class="card-option">Exercise</a>
+            <a href="{{ url_for('log_finances') }}" class="card-option">Finances</a>
+        </div>
+    </main>
+    <script src="{{ url_for('static', filename='navbar.js') }}"></script>
+</body>
+</html>

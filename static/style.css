@@ -1,0 +1,195 @@
+:root {
+  --main-bg-color: rgb(40, 40, 40);
+  --card-bg-color: rgba(255, 255, 255, 0.2);
+  --text-hover-color:#EEB0B5;
+  --button-color:#E194A8;
+}
+ html{
+  font-family:"Raleway", sans-serif;
+ }
+/* ---------------- NAV STYLING ---------------- */
+
+body{
+  background-color: var(--main-bg-color);
+  margin:0;
+}
+header {
+  width: 100%;
+  display:flex;
+  align-items: center;
+  justify-content: center;
+  position:fixed;
+  top:0;
+}
+
+li {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+  color: white;
+  font-size: 1rem;
+  cursor:pointer;
+}
+
+a:hover {
+  color: var(--text-hover-color);
+}
+
+.navbar {
+  width: 90%;
+  height: 60px;
+  max-width: 1200px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+}
+
+.navbar .logo a {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.navbar .links {
+  display: flex;
+  gap: 2rem;
+}
+
+.navbar .toggle_btn {
+  display: none;
+}
+.toggle_btn img{
+  height:30px;
+  width:auto;
+
+}
+
+.action_button {
+  background-color: var(--button-color);
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.action_button:hover {
+  scale: 1.05;
+  color:white;
+}
+
+.action_button:active {
+  scale: 0.95;
+}
+
+/* ---------------- DROPDOWN MENU ---------------- */
+
+.dropdown_menu {
+  display: none;
+  position: absolute;
+  right: 2rem;
+  top: 60px;
+  width: 300px;
+  background: var(--card-bg-color);
+  backdrop-filter: blur(15px);
+  border-radius: 10px;
+  overflow: hidden;
+  height: 0;
+  transition: height 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index:3;
+}
+
+.dropdown_menu.open {
+  height: 240px;
+}
+
+.dropdown_menu li {
+  padding: 0.7rem;
+  display: flex;
+  justify-content: center;
+}
+
+/* ---------------- HERO BACKGROUND ---------------- */
+/*
+main {
+  width:100vw;
+  min-width:100%;
+  height:60vh;
+  background-image: url("assets/images/bg.jpg");
+  background-size: cover;
+  background-position: center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}*/
+main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 100vh;
+  background-image: url("./assets/images/bg.jpg");
+  background-size: cover;
+  background-position: center;
+}
+
+/* ---------------- CAROUSEL ---------------- */
+
+.carousel {
+  width: 100%;
+  height:60vh;
+  display: flex;
+  overflow-x: hidden;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1em;
+  animation: spin 30s infinite linear;
+  padding-right: 1em;
+}
+
+.card {
+  flex: 0 0 800px;
+  height: 100%;
+  padding: 1em;
+  font-size: 3rem;
+  background: var(--card-bg-color);
+  backdrop-filter: blur(5px);
+  border-radius: 20px;
+  text-align: center;
+  align-content: center;
+  cursor:pointer;
+}
+
+@keyframes spin {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* ---------------- RESPONSIVE ---------------- */
+
+@media (max-width: 992px) {
+  .navbar .links,
+  .navbar .action_button {
+    display: none;
+  }
+
+  .navbar .toggle_btn {
+    display: block;
+  }
+
+  .dropdown_menu {
+    display: block;
+  }
+}
