@@ -1,10 +1,11 @@
 import flask
 from flask import Flask, render_template
-from model.repository import Repository
+from models.repository import Repository
 import os
 from controllers.logbook import logbook_bp
-
-
+from controllers.food_controller import food_bp
+from controllers.exercise_controller import exercise_bp
+from controllers.finance_controller import finance_bp
 
 
 app=flask.Flask(__name__)
@@ -22,6 +23,9 @@ repo=Repository(
     )
 
 app.register_blueprint(logbook_bp)
+app.register_blueprint(food_bp)
+app.register_blueprint(exercise_bp)
+app.register_blueprint(finance_bp)
 
 @app.route("/")
 def home():

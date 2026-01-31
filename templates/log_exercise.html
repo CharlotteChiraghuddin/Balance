@@ -40,7 +40,7 @@
 </header>
 
 <main>
-    <form>
+    <form action="{{ url_for('exercise.submit_exercise') }}" method="POST">
         <div class="form-group">
             <label for="exercise-name">Exercise Name:</label>
             <input type="text" id="exercise-name" name="exercise-name" required>
@@ -54,8 +54,8 @@
             <input type="number" id="calories" name="calories" required>
         </div>
         <div class="form-group">
-            <label for="date-performed">Date Performed:</label>
-            <input type="date" id="date-performed" name="date-performed" required>
+            <label for="date">Date Performed:</label>
+            <input type="date" id="date" name="date" required>
         </div>
         <button type="submit">Log Exercise</button>
     </form>

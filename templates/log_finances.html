@@ -40,7 +40,7 @@
 </header>
 
 <main>
-    <form>
+    <form action="{{ url_for('finance.submit_transaction') }}" method="POST">
         <div class="form-group">
             <label for="expense-name">Expense Name:</label>
             <input type="text" id="expense-name" name="expense-name" required>
@@ -87,8 +87,8 @@
         </div>
 
         <div class="form-group">
-            <label for="date-spent">Date Spent:</label>
-            <input type="date" id="date-spent" name="date-spent" required>
+            <label for="date">Date Spent:</label>
+            <input type="date" id="date" name="date" required>
         </div>
         <button type="submit">Log Expense</button>
     </form>

@@ -40,7 +40,7 @@
 </header>
 
 <main>
-    <form>
+    <form action="/log_food" method="POST">
         <div class="form-group">
             <label for="food-name">Food Name:</label>
             <input type="text" id="food-name" name="food-name" required>
@@ -51,7 +51,7 @@
         </div>
         <div class="form-group">
             <label for="meal-type">Meal Type</label>
-            <select id="meal-type" name="category" required>
+            <select id="meal-type" name="meal-type" required>
                 <option value="" disabled selected>Select a meal type</option>
                 <option value="breakfast">Breakfast</option>
                 <option value="lunch">Lunch</option>
@@ -60,8 +60,8 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="date-consumed">Date Consumed:</label>
-            <input type="date" id="date-consumed" name="date-consumed" required>
+            <label for="date">Date Consumed:</label>
+            <input type="date" id="date" name="date" required>
         </div>
         <button type="submit">Log Food</button>
     </form>

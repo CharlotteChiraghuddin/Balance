@@ -2,11 +2,11 @@ import mysql.connector
 from mysql.connector import pooling, Error
 import os
 from typing import List, Optional, Any, Dict
-from model.users import User
-from model.journal_day import JournalDay
-from model.food import Food
-from model.transaction import Transaction
-from model.exercise import Exercise
+from models.users import User
+from models.journal_day import JournalDay
+from models.food import Food
+from models.transaction import Transaction
+from models.exercise import Exercise
 from datetime import date, time
 
 
@@ -53,7 +53,8 @@ class Repository:
         id INT AUTO_INCREMENT PRIMARY KEY,
         first_name VARCHAR(255) NOT NULL,
         last_name VARCHAR(255) NOT NULL,
-        email VARCHAR(255) NOT NULL
+        email VARCHAR(255) NOT NULL,
+        password VARCHAR(255) NOT NULL
         )
         """
         ddl_journal_day="""
@@ -106,7 +107,7 @@ class Repository:
         journal_day_id INT,
         FOREIGN KEY (journal_day_id) REFERENCES journal_day(id),
         name VARCHAR(50) NOT NULL,
-        duration TIME,
+        duration INT NOT NULL,
         calories INT NOT NULL
         )"""
         
@@ -132,8 +133,8 @@ class Repository:
         last_name= last_name.strip()
         email= email.strip()
         insert_sql="""
-        INSERT INTO users (first_name, last_name, email)
-        VALUES (%s, %s, %s)
+        INSERT INTO users (first_name, last_name, email, password)
+        VALUES (%s, %s, %s, %s)
         """
         conn= self._get_conn()
         try:
@@ -197,23 +198,24 @@ class Repository:
             VALUES (%s, %s, %s, %s)
         """
 
-        conn = self.get_conn()
+        conn = self._get_conn()
 
         try:
             with conn.cursor() as cur:
                 cur.execute(insert_sql, (user_id, date, mood, reflection))
                 conn.commit()
                 journal_day_id = cur.lastrowid
-                return(journal_day_id, user_id, date, mood, reflection)
+                return journal_day_id
+
         finally:
             conn.close()
 
-    def get_journal_id_by_date(self, date: str):
+    def get_journal_id_by_date(self, date):
         select_sql = """
             SELECT id FROM journal_day WHERE date = %s
         """
 
-        conn = self.get_conn()
+        conn = self._get_conn()
 
         try:
             with conn.cursor() as cur:
@@ -235,7 +237,7 @@ class Repository:
             VALUES (%s, %s, %s, %s)
         """
 
-        conn = self.get_conn()
+        conn = self._get_conn()
 
         try:
             with conn.cursor() as cur:
@@ -251,7 +253,7 @@ class Repository:
             SELECT id, name, calories, meal_type FROM food WHERE journal_day_id = %s
         """
 
-        conn = self.get_conn()
+        conn = self._get_conn()
 
         try:
             with conn.cursor() as cur:
@@ -266,7 +268,7 @@ class Repository:
             DELETE FROM food WHERE id = %s
         """
 
-        conn = self.get_conn()
+        conn = self._get_conn()
 
         try:
             with conn.cursor() as cur:
@@ -283,7 +285,7 @@ class Repository:
             VALUES (%s, %s, %s, %s)
         """
 
-        conn = self.get_conn()
+        conn = self._get_conn()
 
         try:
             with conn.cursor() as cur:
@@ -299,7 +301,7 @@ class Repository:
             SELECT id, name, amount, category FROM transactions WHERE journal_day_id = %s
         """
 
-        conn = self.get_conn()
+        conn = self._get_conn()
 
         try:
             with conn.cursor() as cur:
@@ -314,7 +316,7 @@ class Repository:
             DELETE FROM transactions WHERE id = %s
         """
 
-        conn = self.get_conn()
+        conn = self._get_conn()
 
         try:
             with conn.cursor() as cur:
@@ -331,7 +333,7 @@ class Repository:
             VALUES (%s, %s, %s, %s)
         """
 
-        conn = self.get_conn()
+        conn = self._get_conn()
 
         try:
             with conn.cursor() as cur:
@@ -347,7 +349,7 @@ class Repository:
             SELECT id, name, duration, calories FROM exercise WHERE journal_day_id = %s
         """
 
-        conn = self.get_conn()
+        conn = self._get_conn()
 
         try:
             with conn.cursor() as cur:
@@ -362,7 +364,7 @@ class Repository:
             DELETE FROM exercise WHERE id = %s
         """
 
-        conn = self.get_conn()
+        conn = self._get_conn()
 
         try:
             with conn.cursor() as cur:
