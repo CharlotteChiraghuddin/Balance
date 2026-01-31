@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Balance{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='form.css') }}">
+    <link rel="stylesheet" href="{{url_for('static', filename='logbook.css')}}">
+</head>
+
+<body>
+
+<header>
+    <nav class="navbar">
+        <div class="logo"><a href="#">BALANCE</a></div>
+
+        <ul class="links">
+            <li><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a href="{{ url_for('logbook.logbook_home') }}">Logbook</a></li>
+            <li><a href="{{ url_for('calendar') }}">Calendar</a></li>
+            <li><a href="{{ url_for('music') }}">Music</a></li>
+            <li><a href="{{ url_for('insights') }}">Insights</a></li>
+        </ul>
+
+        <a href="{{ url_for('auth.login') }}" class="action_button">
+            {% if session.user_id %}
+                My Account
+            {% else %}
+                Login
+            {% endif %}
+        </a>
+
+        <div class="toggle_btn">
+            <button class="more">
+                <img src="{{ url_for('static', filename='assets/images/menu.png') }}" alt="menu icon">
+            </button>
+        </div>
+
+        <ul class="dropdown_menu">
+            <li><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a href="{{ url_for('logbook.logbook_home') }}">Logbook</a></li>
+            <li><a href="{{ url_for('calendar') }}">Calendar</a></li>
+            <li><a href="{{ url_for('music') }}">Music</a></li>
+            <li><a href="{{ url_for('insights') }}">Insights</a></li>
+            <li>
+                <a href="{{ url_for('auth.login') }}" class="action_button">
+                    {% if session.user_id %}
+                        My Account
+                    {% else %}
+                        Login
+                    {% endif %}
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+<script src="{{ url_for('static', filename='navbar.js') }}"></script>
+</body>
+</html>

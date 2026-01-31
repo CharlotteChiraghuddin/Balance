@@ -1,64 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-        <link rel="stylesheet" href="{{ url_for('static', filename='form.css') }}">
-    <title>Document</title>
-</head>
-<body>
-<header>
-    <nav class="navbar">
-        <div class="logo"><a href="#">BALANCE</a></div>
+{% extends "layout.html" %}
 
-        <ul class="links">
-            <li><a href="{{ url_for('home') }}">Home</a></li>
-            <li><a href="{{ url_for('logbook.logbook_home') }}">Logbook</a></li>
-            <li><a href="{{ url_for('calendar') }}">Calendar</a></li>
-            <li><a href="{{ url_for('music') }}">Music</a></li>
-            <li><a href="{{ url_for('insights') }}">Insights</a></li>
-        </ul>
+{% block title %}Log Exercise{% endblock %}
 
-        <a href="#" class="action_button">Login</a>
-
-        <div class="toggle_btn">
-            <button class="more">
-                <img src="../static/assets/images/menu.png" alt="menu icon">
-            </button>
-        </div>
-
-        <ul class="dropdown_menu">
-            <li><a href="{{ url_for('home') }}">Home</a></li>
-            <li><a href="{{ url_for('logbook.logbook_home') }}">Logbook</a></li>
-            <li><a href="{{ url_for('calendar') }}">Calendar</a></li>
-            <li><a href="{{ url_for('music') }}">Music</a></li>
-            <li><a href="{{ url_for('insights') }}">Insights</a></li>
-            <li><a href="#" class="action_button">Login</a></li>
-        </ul>
-    </nav>
-</header>
-
-<main>
-    <form action="{{ url_for('exercise.submit_exercise') }}" method="POST">
-        <div class="form-group">
-            <label for="exercise-name">Exercise Name:</label>
-            <input type="text" id="exercise-name" name="exercise-name" required>
-        </div>
-        <div class="form-group">
-            <label for="duration">Duration (minutes):</label>
-            <input type="number" id="duration" name="duration" required>
-        </div>
-        <div class="form-group">
-            <label for="calories">Calories Burned:</label>
-            <input type="number" id="calories" name="calories" required>
-        </div>
-        <div class="form-group">
-            <label for="date">Date Performed:</label>
-            <input type="date" id="date" name="date" required>
-        </div>
-        <button type="submit">Log Exercise</button>
-    </form>
-</main>
-</body>
-</html>
+{% block content %}
+<form action="{{ url_for('exercise.submit_exercise') }}" method="POST">
+    <div class="form-group">
+        <label for="exercise-name">Exercise Name:</label>
+        <input type="text" id="exercise-name" name="exercise-name" required>
+    </div>
+    <div class="form-group">
+        <label for="duration">Duration (minutes):</label>
+        <input type="number" id="duration" name="duration" required>
+    </div>
+    <div class="form-group">
+        <label for="calories">Calories Burned:</label>
+        <input type="number" id="calories" name="calories" required>
+    </div>
+    <div class="form-group">
+        <label for="date">Date Performed:</label>
+        <input type="date" id="date" name="date" required>
+    </div>
+    <button type="submit">Log Exercise</button>
+</form>
+{% endblock %}

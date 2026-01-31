@@ -54,7 +54,8 @@ class Repository:
         first_name VARCHAR(255) NOT NULL,
         last_name VARCHAR(255) NOT NULL,
         email VARCHAR(255) NOT NULL,
-        password VARCHAR(255) NOT NULL
+        password_hash VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """
         ddl_journal_day="""
@@ -114,7 +115,7 @@ class Repository:
 
         conn = self._get_conn()
         try:
-            with conn.cursor() as cur:
+            with conn.cursor(buffered=True) as cur:
                 cur.execute(ddl_users)
                 cur.execute(ddl_journal_day)
                 cur.execute(ddl_song)
@@ -128,43 +129,58 @@ class Repository:
 
     #------------- CRUD FOR USERS ----------------
 
-    def add_user(self, first_name:str, last_name:str,email: str)->User:
-        first_name= first_name.strip()
-        last_name= last_name.strip()
-        email= email.strip()
-        insert_sql="""
-        INSERT INTO users (first_name, last_name, email, password)
-        VALUES (%s, %s, %s, %s)
+    def add_user(self, first_name: str, last_name: str, email: str, password_hash: str) -> User:
+        first_name = first_name.strip()
+        last_name = last_name.strip()
+        email = email.strip()
+
+        insert_sql = """
+            INSERT INTO users (first_name, last_name, email, password_hash)
+            VALUES (%s, %s, %s, %s)
         """
-        conn= self._get_conn()
+
+        conn = self._get_conn()
         try:
-            with conn.cursor() as cur:
-                cur.execute(insert_sql, (first_name, last_name, email))
+            with conn.cursor(buffered=True) as cur:
+                cur.execute(insert_sql, (first_name, last_name, email, password_hash))
                 conn.commit()
-                user_id= cur.lastrowid
-                return User(id=user_id, first_name=first_name, last_name=last_name, email=email)
+                user_id = cur.lastrowid
+
+                # fetch created_at
+                cur.execute("SELECT created_at FROM users WHERE id = %s", (user_id,))
+                created_at = cur.fetchone()[0]
+
+                return User(
+                    user_id=user_id,
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    password_hash=password_hash,
+                    created_at=created_at
+                )
         finally:
             conn.close()
 
+
     def list_all_users(self) -> List[User]:
-        select_sql = "SELECT id, first_name, last_name, email FROM users"
+        select_sql = "SELECT id, first_name, last_name, email, password_hash, created_at FROM users"
         conn = self._get_conn()
         try:
-            with conn.cursor() as cur:
+            with conn.cursor(buffered=True) as cur:
                 cur.execute(select_sql)
                 rows = cur.fetchall()
-                return [User(id=row[0], first_name=row[1], last_name=row[2], email=row[3]) for row in rows]
+                return [User(user_id=row[0], first_name=row[1], last_name=row[2], email=row[3], password_hash=row[4], created_at=row[5]) for row in rows]
         finally:
             conn.close()
     def get_user_by_id(self, user_id: int) -> Optional[User]:
-        select_sql = "SELECT id, first_name, last_name, email FROM users WHERE id = %s"
+        select_sql = "SELECT id, first_name, last_name, email, password_hash, created_at FROM users WHERE id = %s"
         conn = self._get_conn()
         try:
-            with conn.cursor() as cur:
+            with conn.cursor(buffered=True) as cur:
                 cur.execute(select_sql, (user_id,))
                 row = cur.fetchone()
                 if row:
-                    return User(id=row[0], first_name=row[1], last_name=row[2], email=row[3])
+                    return User(user_id=row[0], first_name=row[1], last_name=row[2], email=row[3], password_hash=row[4], created_at=row[5])
                 return None
         finally:
             conn.close()
@@ -173,7 +189,7 @@ class Repository:
         update_sql = "UPDATE users SET email = %s WHERE id = %s"
         conn = self._get_conn()
         try:
-            with conn.cursor() as cur:
+            with conn.cursor(buffered=True) as cur:
                 cur.execute(update_sql, (new_email, user_id))
                 conn.commit()
                 return cur.rowcount > 0
@@ -183,12 +199,39 @@ class Repository:
         delete_sql = "DELETE FROM users WHERE id = %s"
         conn = self._get_conn()
         try:
-            with conn.cursor() as cur:
+            with conn.cursor(buffered=True) as cur:
                 cur.execute(delete_sql, (user_id,))
                 conn.commit()
                 return cur.rowcount > 0
         finally:
             conn.close()
+    def get_user_by_email(self, email: str) -> User | None:
+        sql = """
+            SELECT id, first_name, last_name, email, password_hash, created_at
+            FROM users
+            WHERE email = %s
+        """
+
+        conn = self._get_conn()
+        try:
+            with conn.cursor(buffered=True) as cur:
+                cur.execute(sql, (email,))
+                row = cur.fetchone()  # ⭐ THIS IS REQUIRED
+
+                if row is None:
+                    return None
+
+                return User(
+                    user_id=row[0],
+                    first_name=row[1],
+                    last_name=row[2],
+                    email=row[3],
+                    password_hash=row[4],
+                    created_at=row[5]
+                )
+        finally:
+            conn.close()
+
     
     #------------- CRUD FOR journal_day ----------------
 
@@ -201,7 +244,7 @@ class Repository:
         conn = self._get_conn()
 
         try:
-            with conn.cursor() as cur:
+            with conn.cursor(buffered=True) as cur:
                 cur.execute(insert_sql, (user_id, date, mood, reflection))
                 conn.commit()
                 journal_day_id = cur.lastrowid
@@ -218,7 +261,7 @@ class Repository:
         conn = self._get_conn()
 
         try:
-            with conn.cursor() as cur:
+            with conn.cursor(buffered=True) as cur:
                 cur.execute(select_sql, (date,))
                 row = cur.fetchone()
 
@@ -240,7 +283,7 @@ class Repository:
         conn = self._get_conn()
 
         try:
-            with conn.cursor() as cur:
+            with conn.cursor(buffered=True) as cur:
                 cur.execute(insert_sql, (journal_day_id, name, calories, meal_type))
                 conn.commit()
                 food_id = cur.lastrowid
@@ -256,7 +299,7 @@ class Repository:
         conn = self._get_conn()
 
         try:
-            with conn.cursor() as cur:
+            with conn.cursor(buffered=True) as cur:
                 cur.execute(select_sql, (journal_day_id,))
                 rows = cur.fetchall()
                 return [Food(food_id=row[0], journal_day_id=journal_day_id, name=row[1], calories=row[2], meal_type=row[3]) for row in rows]
@@ -271,7 +314,7 @@ class Repository:
         conn = self._get_conn()
 
         try:
-            with conn.cursor() as cur:
+            with conn.cursor(buffered=True) as cur:
                 cur.execute(delete_sql, (food_id,))
                 conn.commit()
                 return cur.rowcount > 0
@@ -288,7 +331,7 @@ class Repository:
         conn = self._get_conn()
 
         try:
-            with conn.cursor() as cur:
+            with conn.cursor(buffered=True) as cur:
                 cur.execute(insert_sql, (journal_day_id, name, amount, category))
                 conn.commit()
                 transaction_id = cur.lastrowid
@@ -304,7 +347,7 @@ class Repository:
         conn = self._get_conn()
 
         try:
-            with conn.cursor() as cur:
+            with conn.cursor(buffered=True) as cur:
                 cur.execute(select_sql, (journal_day_id,))
                 rows = cur.fetchall()
                 return [Transaction(transaction_id=row[0], journal_day_id=journal_day_id, name=row[1], amount=row[2], category=row[3]) for row in rows]
@@ -319,7 +362,7 @@ class Repository:
         conn = self._get_conn()
 
         try:
-            with conn.cursor() as cur:
+            with conn.cursor(buffered=True) as cur:
                 cur.execute(delete_sql, (transaction_id,))
                 conn.commit()
                 return cur.rowcount > 0
@@ -336,7 +379,7 @@ class Repository:
         conn = self._get_conn()
 
         try:
-            with conn.cursor() as cur:
+            with conn.cursor(buffered=True) as cur:
                 cur.execute(insert_sql, (journal_day_id, name, duration, calories))
                 conn.commit()
                 exercise_id = cur.lastrowid
@@ -352,7 +395,7 @@ class Repository:
         conn = self._get_conn()
 
         try:
-            with conn.cursor() as cur:
+            with conn.cursor(buffered=True) as cur:
                 cur.execute(select_sql, (journal_day_id,))
                 rows = cur.fetchall()
                 return [Exercise(exercise_id=row[0], journal_day_id=journal_day_id, name=row[1], duration=row[2], calories=row[3]) for row in rows]
@@ -367,7 +410,7 @@ class Repository:
         conn = self._get_conn()
 
         try:
-            with conn.cursor() as cur:
+            with conn.cursor(buffered=True) as cur:
                 cur.execute(delete_sql, (exercise_id,))
                 conn.commit()
                 return cur.rowcount > 0

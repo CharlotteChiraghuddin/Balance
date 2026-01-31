@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block title %}Log Finances{% endblock %}
+
+{% block content %}
+    <form method="POST" action="{{ url_for('auth.login') }}">
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required><br><br>
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required><br><br>
+        </div>
+
+        <button type="submit">Login</button>
+        {%if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+        <div>
+            <p>Don't have an account? &nbsp;&nbsp;<a href="{{ url_for('auth.signup') }}">Register here</a></p>
+        </div>
+
+    </form>
+{% endblock %}

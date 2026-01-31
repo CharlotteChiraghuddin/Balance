@@ -6,9 +6,10 @@ from controllers.logbook import logbook_bp
 from controllers.food_controller import food_bp
 from controllers.exercise_controller import exercise_bp
 from controllers.finance_controller import finance_bp
-
+from controllers.auth_controller import auth_bp
 
 app=flask.Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "dev-key")
 
 repo=Repository(
     host="127.0.0.1",
@@ -26,6 +27,7 @@ app.register_blueprint(logbook_bp)
 app.register_blueprint(food_bp)
 app.register_blueprint(exercise_bp)
 app.register_blueprint(finance_bp)
+app.register_blueprint(auth_bp)
 
 @app.route("/")
 def home():

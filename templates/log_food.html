@@ -1,70 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-        <link rel="stylesheet" href="{{ url_for('static', filename='form.css') }}">
-    <title>Document</title>
-</head>
-<body>
-<header>
-    <nav class="navbar">
-        <div class="logo"><a href="#">BALANCE</a></div>
+{% extends "layout.html" %}
 
-        <ul class="links">
-            <li><a href="{{ url_for('home') }}">Home</a></li>
-            <li><a href="{{ url_for('logbook.logbook_home') }}">Logbook</a></li>
-            <li><a href="{{ url_for('calendar') }}">Calendar</a></li>
-            <li><a href="{{ url_for('music') }}">Music</a></li>
-            <li><a href="{{ url_for('insights') }}">Insights</a></li>
-        </ul>
+{% block title %}Log Food{% endblock %}
 
-        <a href="#" class="action_button">Login</a>
-
-        <div class="toggle_btn">
-            <button class="more">
-                <img src="../static/assets/images/menu.png" alt="menu icon">
-            </button>
-        </div>
-
-        <ul class="dropdown_menu">
-            <li><a href="{{ url_for('home') }}">Home</a></li>
-            <li><a href="{{ url_for('logbook.logbook_home') }}">Logbook</a></li>
-            <li><a href="{{ url_for('calendar') }}">Calendar</a></li>
-            <li><a href="{{ url_for('music') }}">Music</a></li>
-            <li><a href="{{ url_for('insights') }}">Insights</a></li>
-            <li><a href="#" class="action_button">Login</a></li>
-        </ul>
-    </nav>
-</header>
-
-<main>
-    <form action="/log_food" method="POST">
-        <div class="form-group">
-            <label for="food-name">Food Name:</label>
-            <input type="text" id="food-name" name="food-name" required>
-        </div>
-        <div class="form-group">
-            <label for="calories">Calories:</label>
-            <input type="number" id="calories" name="calories" required>
-        </div>
-        <div class="form-group">
-            <label for="meal-type">Meal Type</label>
-            <select id="meal-type" name="meal-type" required>
-                <option value="" disabled selected>Select a meal type</option>
-                <option value="breakfast">Breakfast</option>
-                <option value="lunch">Lunch</option>
-                <option value="dinner">Dinner</option>
-                <option value="snack">Snack</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="date">Date Consumed:</label>
-            <input type="date" id="date" name="date" required>
-        </div>
-        <button type="submit">Log Food</button>
-    </form>
-</main>
-</body>
-</html>
+{% block content %}
+<form action="/log_food" method="POST">
+    <div class="form-group">
+        <label for="food-name">Food Name:</label>
+        <input type="text" id="food-name" name="food-name" required>
+    </div>
+    <div class="form-group">
+        <label for="calories">Calories:</label>
+        <input type="number" id="calories" name="calories" required>
+    </div>
+    <div class="form-group">
+        <label for="meal-type">Meal Type</label>
+        <select id="meal-type" name="meal-type" required>
+            <option value="" disabled selected>Select a meal type</option>
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+            <option value="snack">Snack</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="date">Date Consumed:</label>
+        <input type="date" id="date" name="date" required>
+    </div>
+    <button type="submit">Log Food</button>
+</form>
+{% endblock %}

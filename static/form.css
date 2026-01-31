@@ -149,7 +149,9 @@ button[type="submit"]:hover {
   padding-right: 40px;
 }
 
-
+p{
+  color: var(--text-hover-color);
+}
 /* ----------------------------------
    ANIMATIONS
 -------------------------------------*/
