@@ -9,6 +9,7 @@ from controllers.finance_controller import finance_bp
 from controllers.auth_controller import auth_bp
 
 app=flask.Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.secret_key = os.environ.get("SECRET_KEY", "dev-key")
 
 repo=Repository(

@@ -6,9 +6,10 @@ from models.repository import Repository
 
 
 auth_bp = Blueprint('auth', __name__)
-repo = Repository()
+
 @auth_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
+    repo=Repository()
     if request.method == 'POST':
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')
@@ -28,7 +29,6 @@ def login():
     if request.method == 'POST':
         email=request.form.get('email')
         password=request.form.get('password')
-
         repo=Repository()
         user=repo.get_user_by_email(email)
 
@@ -43,5 +43,6 @@ def login():
 
 @auth_bp.route('/logout')
 def logout():
+    repo=Repository()
     session.clear() 
     return redirect(url_for("auth.login"))

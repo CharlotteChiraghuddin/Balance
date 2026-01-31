@@ -22,13 +22,11 @@
             <li><a href="{{ url_for('insights') }}">Insights</a></li>
         </ul>
 
-        <a href="{{ url_for('auth.login') }}" class="action_button">
-            {% if session.user_id %}
-                My Account
-            {% else %}
-                Login
-            {% endif %}
-        </a>
+        {% if session.user_id %}
+            <a href="{{ url_for('auth.logout') }}" class="action_button">Logout</a>
+        {% else %}
+            <a href="{{ url_for('auth.login') }}" class="action_button">Login</a>
+        {% endif %}
 
         <div class="toggle_btn">
             <button class="more">
@@ -43,13 +41,11 @@
             <li><a href="{{ url_for('music') }}">Music</a></li>
             <li><a href="{{ url_for('insights') }}">Insights</a></li>
             <li>
-                <a href="{{ url_for('auth.login') }}" class="action_button">
-                    {% if session.user_id %}
-                        My Account
-                    {% else %}
-                        Login
-                    {% endif %}
-                </a>
+            {% if session.user_id %}
+                <a href="{{ url_for('auth.logout') }}" class="action_button">Logout</a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="action_button">Login</a>
+            {% endif %}
             </li>
         </ul>
     </nav>
