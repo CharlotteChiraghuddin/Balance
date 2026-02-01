@@ -1,8 +1,8 @@
 {% extends "layout.html" %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='form.css') }}">
-    <link rel="stylesheet" href="{{url_for('static', filename='logbook.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/form.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/logbook.css') }}">
 {% endblock %}
 
 {% block title %}LogBook{% endblock %}
@@ -10,9 +10,9 @@
 {% block content %}
     <h1>SELECT A CATEGORY TO LOG</h1>
     <div class="select-card">
-        <a href="{{ url_for('logbook.logbook_food') }}" class="card-option">Food</a>
-        <a href="{{ url_for('logbook.logbook_exercise') }}" class="card-option">Exercise</a>
-        <a href="{{ url_for('logbook.logbook_finances') }}" class="card-option">Finances</a>
-        <a href="{{ url_for('logbook.logbook_mood') }}" class="card-option">Mood</a>
+        <a href="{{ url_for('logbook.logbook_food') }}" class="card-option"><img src="{{ url_for('static', filename='assets/images/food.png') }}" alt="Food"></a>
+        <a href="{{ url_for('logbook.logbook_exercise') }}" class="card-option"><img src="{{ url_for('static', filename='assets/images/exercise.png') }}" alt="Exercise"></a>
+        <a href="{{ url_for('logbook.logbook_finances') }}" class="card-option"><img src="{{ url_for('static', filename='assets/images/finance.png') }}" alt="Finances"></a>
+        <a href="{{ url_for('logbook.logbook_mood') }}" class="card-option"><img src="{{ url_for('static', filename='assets/images/mood.png') }}" alt="Mood"></a>
     </div>
 {% endblock %}

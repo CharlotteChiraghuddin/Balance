@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}Balance{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/style.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
 
@@ -53,6 +53,6 @@
 <main>
     {% block content %}{% endblock %}
 </main>
-<script src="{{ url_for('static', filename='navbar.js') }}"></script>
+<script src="{{ url_for('static', filename='js/navbar.js') }}"></script>
 </body>
 </html>

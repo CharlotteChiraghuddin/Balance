@@ -51,16 +51,26 @@ def insights():
     if not user_id:
         return redirect(url_for('auth.login'))
 
-    # Get today's journal entry
-    today_data = repo.get_user_data_today(user_id)
+    # Get last 7 days of JournalDay objects
+    week_days = repo.get_user_data_week(user_id)
 
-    # Get all detailed entries (food, exercise, transactions, etc.)
-    full_data = repo.get_user_data(user_id)
+    # Get full detailed data (food, exercise, transactions)
+    full_data = repo.get_user_data_weekly(user_id)
 
-    # Extract safe values for the template
-    mood = today_data.mood if today_data else None
-    calories = sum(f["calories"] for f in full_data[0]["food"]) if full_data else 0
-    exercise_calories = sum(e["calories"] for e in full_data[0]["exercise"]) if full_data else 0
+    # --- TODAY'S DATA ---
+    today = week_days[0] if week_days else None
+    mood = today.mood if today else None
+
+    # --- TODAY'S CALORIES ---
+    if full_data:
+        today_food = full_data[0]["food"]
+        today_exercise = full_data[0]["exercise"]
+
+        calories = sum(f["calories"] for f in today_food)
+        exercise_calories = sum(e["calories"] for e in today_exercise)
+    else:
+        calories = 0
+        exercise_calories = 0
 
     return render_template(
         "insights.html",
@@ -69,7 +79,7 @@ def insights():
         calories=calories,
         exercise_calories=exercise_calories,
         full_data=full_data,
-        today_data=today_data
+        today_data=today
     )
 
 if __name__=="__main__":

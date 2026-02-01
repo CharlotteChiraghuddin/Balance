@@ -1,14 +1,14 @@
 {% extends "layout.html" %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='form.css') }}">
-    <link rel="stylesheet" href="{{url_for('static', filename='logbook.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/form.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/logbook.css') }}">
 {% endblock %}
 
 {% block title %}Sign Up{% endblock %}
 
 {% block content %}
-    <form method="POST" action="/signup">
+    <form method="POST" action="{{ url_for('auth.signup') }}">
         <div class="form-group">
             <label for="first_name">First Name:</label>
             <input type="text" id="first_name" name="first_name" required>

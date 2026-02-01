@@ -1,9 +1,9 @@
 {% extends "layout.html" %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='form.css') }}">
-    <link rel="stylesheet" href="{{url_for('static', filename='logbook.css')}}">
-    <link rel="stylesheet" href="{{url_for('static', filename='insights.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/form.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/logbook.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/insights.css') }}">
 {% endblock %}
 
 {% block title %}Insights{% endblock %}
@@ -11,41 +11,79 @@
 {% block content %}
 <div class="insights">
     <div class="insights-container">
+
+        <!-- =======================
+             TODAY OVERVIEW
+        ======================== -->
         <div id="day-view" class="insight-card">
-            
-            <div class="graph">
-                <h2>{{ Date }}</h2>
-                <div id="transactions-today">
-                    <h3>Transactions Today</h3>
-                    <canvas id="transactionsChart"></canvas>
-                </div>
+
+            <div class="header-row">
+                <h2>Today — {{ Date }}</h2>
             </div>
+
             <div class="summary-today">
-                <div class="summary-card"id="calories-today">
-                    <h3>Calories Consumed Today</h3>
-                    <p id="caloriesCount">{{ calories }} kcal</p>
+
+                <div class="summary-card" id="calories-today">
+                    <h3>Calories Consumed</h3>
+                    <p class="summary-value">{{ calories }} kcal</p>
                 </div>
-                <div class="summary-card"id="mood-today">
-                    <img id="moodIcon" src="{{ url_for('static', filename='assets/images/mood_' ~ mood ~ '.png') }}" alt="Mood Icon">
+
+                <div class="summary-card" id="mood-today">
+                    {% if mood %}
+                        <img id="moodIcon"
+                             src="{{ url_for('static', filename='assets/images/mood_' ~ mood ~ '.png') }}"
+                             alt="Mood Icon">
+                        <p class="summary-label">Overall Mood: {{ mood }}</p>
+                    {% else %}
+                        <p>No mood logged today</p>
+                    {% endif %}
                 </div>
+
                 <div class="summary-card" id="exercise-today">
-                    <h3>Exercise Today</h3>
-                    <p id="exerciseCount">{{ exercise_calories }} calories</p>
+                    <h3>Exercise This week</h3>
+                    <p class="summary-value">{{ exercise_calories }} kcal</p>
+                    <div id="exercise-chart"></div>
                 </div>
+
             </div>
+
+            <!-- =======================
+                 TODAY'S TRANSACTIONS
+            ======================== -->
+            <div class="chart-card">
+                <h3>Today's Transactions</h3>
+
+                {% if full_data and full_data[0]["transactions"] %}
+                    <canvas id="transactionsChart"></canvas>
+                {% else %}
+                    <p class="empty-state">No transactions logged today</p>
+                {% endif %}
+            </div>
+
         </div>
-        <div id="food-detail" class="insight-card">
-            <h2>Food Detail</h2>
+
+        <div class="select-option">
+            <a href="{{ url_for('logbook.logbook_food') }}" class="card-option"><img src="{{ url_for('static', filename='assets/images/food.png') }}" alt="Food"></a>
+            <a href="{{ url_for('logbook.logbook_exercise') }}" class="card-option"><img src="{{ url_for('static', filename='assets/images/exercise.png') }}" alt="Exercise"></a>
+            <a href="{{ url_for('logbook.logbook_finances') }}" class="card-option"><img src="{{ url_for('static', filename='assets/images/finance.png') }}" alt="Finance"></a>
+            <a href="{{ url_for('logbook.logbook_mood') }}" class="card-option"><img src="{{ url_for('static', filename='assets/images/mood.png') }}" alt="Mood"></a>
         </div>
-        <div id="exercise-detail" class="insight-card">
-            <h2>Exercise Detail</h2>
-        </div>
-        <div id="finance-detail" class="insight-card">
-            <h2>Finance Detail</h2>
-        </div>
-        <div id="mood-detail" class="insight-card">
-            <h2>Mood Detail</h2>
-        </div>
+
     </div>
 </div>
+
+<!-- =======================
+     SCRIPTS
+======================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Pass weekly data to JS -->
+<script>
+    const weekData = JSON.parse(`{{ full_data | tojson | safe }}`);
+</script>
+
+<!-- Your external chart logic -->
+<script src="{{ url_for('static', filename='js/insight.js') }}"></script>
+
 {% endblock %}

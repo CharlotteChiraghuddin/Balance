@@ -232,39 +232,48 @@ class Repository:
         finally:
             conn.close()
 
-    def get_user_data_today(self, user_id: int):
+    def get_user_data_week(self, user_id: int):
         select_sql = """
-            SELECT * FROM journal_day
-            WHERE user_id = %s AND date = CURDATE()
+            SELECT *
+            FROM journal_day
+            WHERE user_id = %s
+            AND date >= CURDATE() - INTERVAL 7 DAY
+            ORDER BY date DESC
         """
         conn = self._get_conn()
         try:
             with conn.cursor(buffered=True) as cur:
                 cur.execute(select_sql, (user_id,))
-                row = cur.fetchone()
+                rows = cur.fetchall()
 
-                if row is None:
-                    return None
+                if not rows:
+                    return []
 
-                return JournalDay(
-                    journal_day_id=row[0],
-                    user_id=row[1],
-                    date=row[2],
-                    mood=row[3],
-                    reflection=row[4]
-                )
+                week = []
+                for row in rows:
+                    week.append(JournalDay(
+                        journal_day_id=row[0],
+                        user_id=row[1],
+                        date=row[2],
+                        mood=row[3],
+                        reflection=row[4]
+                    ))
+
+                return week
         finally:
             conn.close()
-    def get_user_data(self, user_id: int):
+            
+    def get_user_data_weekly(self, user_id: int):
         conn = self._get_conn()
         try:
             with conn.cursor(dictionary=True) as cur:
 
-                # Get the journal_day id(s) for this user
+                # Get the last 7 days for this user
                 cur.execute("""
                     SELECT id, date, mood, reflection
                     FROM journal_day
                     WHERE user_id = %s
+                    AND date >= CURDATE() - INTERVAL 7 DAY
                     ORDER BY date DESC
                 """, (user_id,))
                 days = cur.fetchall()
