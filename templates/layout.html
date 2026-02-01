@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <title>{% block title %}Balance{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='form.css') }}">
-    <link rel="stylesheet" href="{{url_for('static', filename='logbook.css')}}">
+    {% block extra_css %}{% endblock %}
 </head>
 
 <body>

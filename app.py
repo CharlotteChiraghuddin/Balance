@@ -1,5 +1,6 @@
+from sqlite3 import Date
 import flask
-from flask import Flask, render_template
+from flask import Flask, render_template, session, redirect, url_for
 from models.repository import Repository
 import os
 from controllers.logbook import logbook_bp
@@ -7,7 +8,8 @@ from controllers.food_controller import food_bp
 from controllers.exercise_controller import exercise_bp
 from controllers.finance_controller import finance_bp
 from controllers.auth_controller import auth_bp
-
+from controllers.mood_controller import mood_bp
+from datetime import datetime, date
 app=flask.Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.secret_key = os.environ.get("SECRET_KEY", "dev-key")
@@ -29,6 +31,7 @@ app.register_blueprint(food_bp)
 app.register_blueprint(exercise_bp)
 app.register_blueprint(finance_bp)
 app.register_blueprint(auth_bp)
+app.register_blueprint(mood_bp)
 
 @app.route("/")
 def home():
@@ -44,7 +47,30 @@ def music():
 
 @app.route("/insights")
 def insights():
-    return render_template('insights.html')
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('auth.login'))
+
+    # Get today's journal entry
+    today_data = repo.get_user_data_today(user_id)
+
+    # Get all detailed entries (food, exercise, transactions, etc.)
+    full_data = repo.get_user_data(user_id)
+
+    # Extract safe values for the template
+    mood = today_data.mood if today_data else None
+    calories = sum(f["calories"] for f in full_data[0]["food"]) if full_data else 0
+    exercise_calories = sum(e["calories"] for e in full_data[0]["exercise"]) if full_data else 0
+
+    return render_template(
+        "insights.html",
+        Date=datetime.now().date(),
+        mood=mood,
+        calories=calories,
+        exercise_calories=exercise_calories,
+        full_data=full_data,
+        today_data=today_data
+    )
 
 if __name__=="__main__":
     app.run(debug=True)

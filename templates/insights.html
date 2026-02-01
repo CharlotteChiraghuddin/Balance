@@ -1,7 +1,51 @@
 {% extends "layout.html" %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='form.css') }}">
+    <link rel="stylesheet" href="{{url_for('static', filename='logbook.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='insights.css')}}">
+{% endblock %}
+
 {% block title %}Insights{% endblock %}
 
 {% block content %}
-# Insights Page
+<div class="insights">
+    <div class="insights-container">
+        <div id="day-view" class="insight-card">
+            
+            <div class="graph">
+                <h2>{{ Date }}</h2>
+                <div id="transactions-today">
+                    <h3>Transactions Today</h3>
+                    <canvas id="transactionsChart"></canvas>
+                </div>
+            </div>
+            <div class="summary-today">
+                <div class="summary-card"id="calories-today">
+                    <h3>Calories Consumed Today</h3>
+                    <p id="caloriesCount">{{ calories }} kcal</p>
+                </div>
+                <div class="summary-card"id="mood-today">
+                    <img id="moodIcon" src="{{ url_for('static', filename='assets/images/mood_' ~ mood ~ '.png') }}" alt="Mood Icon">
+                </div>
+                <div class="summary-card" id="exercise-today">
+                    <h3>Exercise Today</h3>
+                    <p id="exerciseCount">{{ exercise_calories }} calories</p>
+                </div>
+            </div>
+        </div>
+        <div id="food-detail" class="insight-card">
+            <h2>Food Detail</h2>
+        </div>
+        <div id="exercise-detail" class="insight-card">
+            <h2>Exercise Detail</h2>
+        </div>
+        <div id="finance-detail" class="insight-card">
+            <h2>Finance Detail</h2>
+        </div>
+        <div id="mood-detail" class="insight-card">
+            <h2>Mood Detail</h2>
+        </div>
+    </div>
+</div>
 {% endblock %}

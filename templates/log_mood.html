@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% block title %}Log Mood{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='form.css') }}">
+    <link rel="stylesheet" href="{{url_for('static', filename='logbook.css')}}">
+{% endblock %}
+
+{% block content %}
+       <form action="/log_mood" method="POST">
+        <div class="form-group">
+            <label for="mood">How are you feeling today?</label>
+            <select id="mood" name="mood" required>
+                <option value="" disabled selected>Select your mood</option>
+                <option value="happy">Happy</option>
+                <option value="sad">Sad</option>
+                <option value="neutral">Neutral</option>
+                <option value="stressed">Stressed</option>
+                <option value="excited">Excited</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="reflection">Reflection (optional):</label>
+            <textarea id="reflection" name="reflection" rows="4" cols="50" placeholder="Write about your day..."></textarea>
+        </div>
+        <button type="submit">Log Mood</button>
+        </form>
+{% endblock %}

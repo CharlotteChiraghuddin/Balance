@@ -2,6 +2,11 @@
 
 {% block title %}Log Food{% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='form.css') }}">
+    <link rel="stylesheet" href="{{url_for('static', filename='logbook.css')}}">
+{% endblock %}
+
 {% block content %}
 <form action="/log_food" method="POST">
     <div class="form-group">

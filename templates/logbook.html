@@ -1,5 +1,10 @@
 {% extends "layout.html" %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='form.css') }}">
+    <link rel="stylesheet" href="{{url_for('static', filename='logbook.css')}}">
+{% endblock %}
+
 {% block title %}LogBook{% endblock %}
 
 {% block content %}
@@ -8,5 +13,6 @@
         <a href="{{ url_for('logbook.logbook_food') }}" class="card-option">Food</a>
         <a href="{{ url_for('logbook.logbook_exercise') }}" class="card-option">Exercise</a>
         <a href="{{ url_for('logbook.logbook_finances') }}" class="card-option">Finances</a>
+        <a href="{{ url_for('logbook.logbook_mood') }}" class="card-option">Mood</a>
     </div>
 {% endblock %}

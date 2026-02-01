@@ -1,5 +1,8 @@
 {% extends "layout.html" %}
-
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='form.css') }}">
+    <link rel="stylesheet" href="{{url_for('static', filename='logbook.css')}}">
+{% endblock %}
 {% block title %}Log Exercise{% endblock %}
 
 {% block content %}

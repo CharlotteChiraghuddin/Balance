@@ -232,7 +232,83 @@ class Repository:
         finally:
             conn.close()
 
-    
+    def get_user_data_today(self, user_id: int):
+        select_sql = """
+            SELECT * FROM journal_day
+            WHERE user_id = %s AND date = CURDATE()
+        """
+        conn = self._get_conn()
+        try:
+            with conn.cursor(buffered=True) as cur:
+                cur.execute(select_sql, (user_id,))
+                row = cur.fetchone()
+
+                if row is None:
+                    return None
+
+                return JournalDay(
+                    journal_day_id=row[0],
+                    user_id=row[1],
+                    date=row[2],
+                    mood=row[3],
+                    reflection=row[4]
+                )
+        finally:
+            conn.close()
+    def get_user_data(self, user_id: int):
+        conn = self._get_conn()
+        try:
+            with conn.cursor(dictionary=True) as cur:
+
+                # Get the journal_day id(s) for this user
+                cur.execute("""
+                    SELECT id, date, mood, reflection
+                    FROM journal_day
+                    WHERE user_id = %s
+                    ORDER BY date DESC
+                """, (user_id,))
+                days = cur.fetchall()
+
+                results = []
+
+                for day in days:
+                    day_id = day["id"]
+
+                    # Food entries
+                    cur.execute("""
+                        SELECT name, calories, meal_type
+                        FROM food
+                        WHERE journal_day_id = %s
+                    """, (day_id,))
+                    food = cur.fetchall()
+
+                    # Exercise entries
+                    cur.execute("""
+                        SELECT name, duration, calories
+                        FROM exercise
+                        WHERE journal_day_id = %s
+                    """, (day_id,))
+                    exercise = cur.fetchall()
+
+                    # Transaction entries
+                    cur.execute("""
+                        SELECT name, amount, category
+                        FROM transactions
+                        WHERE journal_day_id = %s
+                    """, (day_id,))
+                    transactions = cur.fetchall()
+
+                    results.append({
+                        "journal_day": day,
+                        "food": food,
+                        "exercise": exercise,
+                        "transactions": transactions
+                    })
+
+                return results
+
+        finally:
+            conn.close()
     #------------- CRUD FOR journal_day ----------------
 
     def add_journal_day(self, user_id: int, date: str, mood: str, reflection: str) -> JournalDay:
@@ -253,16 +329,16 @@ class Repository:
         finally:
             conn.close()
 
-    def get_journal_id_by_date(self, date):
+    def get_journal_id_by_date(self, user_id: int, date: str) -> Optional[int]:
         select_sql = """
-            SELECT id FROM journal_day WHERE date = %s
+            SELECT id FROM journal_day WHERE date = %s AND user_id = %s
         """
 
         conn = self._get_conn()
 
         try:
             with conn.cursor(buffered=True) as cur:
-                cur.execute(select_sql, (date,))
+                cur.execute(select_sql, (date, user_id))
                 row = cur.fetchone()
 
                 if row:
@@ -416,4 +492,31 @@ class Repository:
                 return cur.rowcount > 0
         finally:
             conn.close()
+#------------- CRUD FOR Mood ----------------
 
+    def add_mood(self, journal_day_id: int, user_id: int, mood: str, reflection: str) -> None:
+        insert_sql = """
+            INSERT INTO journal_day (id, user_id, date, mood, reflection)
+            VALUES (%s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE mood = %s, reflection = %s
+        """
+
+        conn = self._get_conn()
+
+        try:
+            with conn.cursor(buffered=True) as cur:
+                cur.execute(
+                    insert_sql,
+                    (
+                        journal_day_id,
+                        user_id,
+                        date.today(),
+                        mood,
+                        reflection,
+                        mood,
+                        reflection
+                    )
+                )
+                conn.commit()
+        finally:
+            conn.close()

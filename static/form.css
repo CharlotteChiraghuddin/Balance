@@ -152,6 +152,20 @@ button[type="submit"]:hover {
 p{
   color: var(--text-hover-color);
 }
+
+textarea{
+  background: rgba(255, 255, 255, 0.15);
+  color:white;
+}
+textarea::placeholder{
+  color: white;
+}
+textarea:focus{
+  outline: none;
+  border: 1px solid var(--button-color);
+  box-shadow: 0 0 12px rgba(225, 148, 168, 0.6);
+}
+
 /* ----------------------------------
    ANIMATIONS
 -------------------------------------*/
