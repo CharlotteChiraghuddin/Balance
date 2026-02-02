@@ -1,7 +1,7 @@
 am5.ready(function () {
 
     // -----------------------------
-    // Helpers
+    // HELPERS
     // -----------------------------
     function showView(viewId) {
         const dayView = document.getElementById("day-view");
@@ -58,7 +58,7 @@ am5.ready(function () {
     }
 
     // -----------------------------
-    // Transaction Categories
+    // TRANSACTION CATEGORIES
     // -----------------------------
     function computeTransactionCategories(allData) {
         const category = {
@@ -84,7 +84,7 @@ am5.ready(function () {
     }
 
     // -----------------------------
-    // Exercise Categories
+    // EXERCISE CATEGORIES
     // -----------------------------
     function computeExerciseCategories(allData) {
         const exerciseCategory = {
@@ -112,13 +112,13 @@ am5.ready(function () {
     }
 
     // -----------------------------
-    // Chart creation
+    // CHART CREATION
     // -----------------------------
     let transactionRoot = null;
     let exerciseRoot = null;
 
     // -----------------------------
-    // Transaction Bar Chart
+    // TRANSACTION BAR CHART
     // -----------------------------
 function buildTransactionChart(viewId, categoryTotals) {
     if (transactionRoot) {
@@ -231,7 +231,7 @@ function buildTransactionChart(viewId, categoryTotals) {
         .map(([key, value]) => ({
             category: key,
             value: value
-        }));
+        })).sort((a, b) => b.value - a.value);
 
     xAxis.data.setAll(transactionData);
     series.data.setAll(transactionData);
@@ -241,7 +241,7 @@ function buildTransactionChart(viewId, categoryTotals) {
 }
 
     // -----------------------------
-    // Exercise Pie Chart
+    // EXERCISE PIE CHART
     // -----------------------------
     function buildExerciseChart(viewId, exerciseTotals) {
     if (exerciseRoot) {
@@ -272,6 +272,17 @@ function buildTransactionChart(viewId, categoryTotals) {
         })
     );
 
+    // Slice labels (white)
+    series.labels.template.setAll({
+        fill: am5.color("#ffffff"),
+        fontSize: 14
+    });
+
+    // Tick lines (white)
+    series.ticks.template.setAll({
+        stroke: am5.color("#ffffff")
+    });
+
     // Soft pastel palette
     series.set("colors", am5.ColorSet.new(exerciseRoot, {
         colors: [
@@ -286,6 +297,7 @@ function buildTransactionChart(viewId, categoryTotals) {
         reuse: true
     }));
 
+    // Convert totals → chart data
     const exerciseData = Object.entries(exerciseTotals)
         .filter(([_, value]) => value > 0)
         .map(([key, value]) => ({
@@ -295,6 +307,7 @@ function buildTransactionChart(viewId, categoryTotals) {
 
     series.data.setAll(exerciseData);
 
+    // Legend (must be created BEFORE styling)
     // Legend styling
     const legend = chart.children.push(
         am5.Legend.new(exerciseRoot, {
@@ -306,6 +319,10 @@ function buildTransactionChart(viewId, categoryTotals) {
         })
     );
 
+    legend.valueLabels.template.set("forceHidden", true);
+    legend.labels.template.set("text", "{category}");
+
+    // NOW apply white text
     legend.labels.template.setAll({
         fill: am5.color("#ffffff"),
         fontSize: 13
@@ -315,6 +332,131 @@ function buildTransactionChart(viewId, categoryTotals) {
 
     series.appear(1000, 100);
 }
+    // -----------------------------
+    // MOOD SUMMARY
+    // -----------------------------
+function showMood(viewId, allData) {
+    const moodResult = averageMood(allData);
+
+    // Find the summary label for this view
+    const suffix = viewId.replace("-view", "");
+    const moodLabel = document.getElementById(`mood-summary-${suffix}`);
+
+    if (!moodLabel) {
+        console.warn("Mood label element not found for:", viewId);
+        return;
+    }
+
+    // If no mood logged
+    if (moodResult.average === null) {
+        moodLabel.innerHTML = `
+            <div class="mood-wrapper">
+                <span>No mood logged</span>
+            </div>
+        `;
+        return;
+    }
+
+    // Map mood label → image filename
+    const moodToImage = {
+        "Very Happy": "mood_happy.png",
+        "Happy": "mood_happy.png",
+        "Neutral": "mood_neutral.png",
+        "Low": "mood_sad.png",
+        "Sad": "mood_sad.png",
+        "Stressed": "mood_angry.png"
+    };
+
+    const imgFile = moodToImage[moodResult.label] || "mood.png";
+
+    // Update the UI
+    moodLabel.innerHTML = `
+        <div class="mood-wrapper">
+        <h3> Overall Mood </h3>
+            <img src="/static/assets/images/${imgFile}" class="mood-icon">
+        </div>
+    `;
+}
+
+function averageMood(allData) {
+    let totalMood = 0;
+    let count = 0;
+
+    for (let day of allData) {
+        const moodSource = day.journal_day?.mood;
+        if (!moodSource) continue;
+
+        const moods = Array.isArray(moodSource) ? moodSource : [moodSource];
+
+        console.log("Processing moods for day:", day.journal_day.date, moods);
+
+        moods.forEach(mood => {
+            switch (mood.toLowerCase()) {
+                case "happy":
+                    totalMood += 5;
+                    break;
+                case "excited":
+                    totalMood += 4;
+                    break;
+                case "neutral":
+                    totalMood += 3;
+                    break;
+                case "sad":
+                    totalMood += 1;
+                    break;
+                case "angry":
+                    totalMood += 0;
+                    break;
+                case "anxious":
+                case "stressed":
+                    totalMood += -2;
+                    break;
+            }
+        });
+
+        count += moods.length;
+    }
+
+    if (count === 0) {
+        return {
+            average: null,
+            label: "No mood logged"
+        };
+    }
+
+    const avg = totalMood / count;
+
+    let label = "";
+    if (avg >= 4.5) label = "Very Happy";
+    else if (avg >= 3.5) label = "Happy";
+    else if (avg >= 2.5) label = "Neutral";
+    else if (avg >= 1.5) label = "Low";
+    else if (avg >= 0.5) label = "Sad";
+    else label = "Stressed";
+
+    return {
+        average: avg,
+        label: label
+    };
+}
+    // -----------------------------
+    // CALCULATE CALORIES
+    // -----------------------------
+function calculateTotalCalories(allData) {
+    let totalCalories = 0;
+    allData.forEach(day => {
+        if (Array.isArray(day.food)) {
+            day.food.forEach(f => {
+                totalCalories += f.calories;
+            }
+        );
+        }
+    });
+    const caloriesElements = document.querySelectorAll('.summary-value');
+    caloriesElements.forEach(elem => {
+        elem.textContent = `${totalCalories.toLocaleString()} kcal`;
+    });
+}
 
     // -----------------------------
     // Init + toggle handling
@@ -323,9 +465,10 @@ function buildTransactionChart(viewId, categoryTotals) {
         const allData = showView(viewId);
         const transactionTotals = computeTransactionCategories(allData);
         const exerciseTotals = computeExerciseCategories(allData);
-
+        showMood(viewId, allData);
         buildTransactionChart(viewId, transactionTotals);
         buildExerciseChart(viewId, exerciseTotals);
+        calculateTotalCalories(allData);
     }
 
     document.addEventListener("DOMContentLoaded", () => {

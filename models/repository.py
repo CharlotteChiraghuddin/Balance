@@ -560,6 +560,25 @@ class Repository:
         finally:
             conn.close()
 
+    def list_food_by_week(self, user_id: int) -> List[Food]:
+        select_sql = """
+            SELECT f.id, f.journal_day_id, f.name, f.calories, f.meal_type
+            FROM food f
+            JOIN journal_day jd ON f.journal_day_id = jd.id
+            WHERE jd.user_id = %s AND jd.date >= CURDATE() - INTERVAL 7 DAY
+        """
+
+        conn = self._get_conn()
+
+        try:
+            with conn.cursor(buffered=True) as cur:
+                cur.execute(select_sql, (user_id,))
+                rows = cur.fetchall()
+                return [Food(food_id=row[0], journal_day_id=row[1], name=row[2], calories=row[3], meal_type=row[4]) for row in rows]
+        finally:
+            conn.close()
+
+            
     def delete_food(self, food_id: int) -> bool:
         delete_sql = """
             DELETE FROM food WHERE id = %s
@@ -605,6 +624,23 @@ class Repository:
                 cur.execute(select_sql, (journal_day_id,))
                 rows = cur.fetchall()
                 return [Transaction(transaction_id=row[0], journal_day_id=journal_day_id, name=row[1], amount=row[2], category=row[3]) for row in rows]
+        finally:
+            conn.close()
+    def list_transactions_by_week(self, user_id: int) -> List[Transaction]:
+        select_sql = """
+            SELECT t.id, t.journal_day_id, t.name, t.amount, t.category
+            FROM transactions t
+            JOIN journal_day jd ON t.journal_day_id = jd.id
+            WHERE jd.user_id = %s AND jd.date >= CURDATE() - INTERVAL 7 DAY
+        """
+
+        conn = self._get_conn()
+
+        try:
+            with conn.cursor(buffered=True) as cur:
+                cur.execute(select_sql, (user_id,))
+                rows = cur.fetchall()
+                return [Transaction(transaction_id=row[0], journal_day_id=row[1], name=row[2], amount=row[3], category=row[4]) for row in rows]
         finally:
             conn.close()
 
@@ -714,5 +750,22 @@ class Repository:
                     )
                 )
                 conn.commit()
+        finally:
+            conn.close()
+        
+    def list_mood_by_week(self, user_id: int) -> List[str]:
+        select_sql = """
+            SELECT mood
+            FROM journal_day
+            WHERE user_id = %s AND date >= CURDATE() - INTERVAL 7 DAY
+        """
+
+        conn = self._get_conn()
+
+        try:
+            with conn.cursor(buffered=True) as cur:
+                cur.execute(select_sql, (user_id,))
+                rows = cur.fetchall()
+                return [row[0] for row in rows]
         finally:
             conn.close()

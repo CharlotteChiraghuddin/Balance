@@ -66,7 +66,7 @@
                     <p class="summary-value">{{ calories }} kcal</p>
                 </div>
 
-                <div class="summary-card" id="mood-day">
+                <div class="summary-card" id="mood-summary-day">
                     {% if mood %}
                         <img id="moodIcon-day"
                              src="{{ url_for('static', filename='assets/images/mood_' ~ mood ~ '.png') }}"
@@ -103,7 +103,7 @@
                     <p class="summary-value">{{ calories }} kcal</p>
                 </div>
 
-                <div class="summary-card" id="mood-week">
+                <div class="summary-card" id="mood-summary-week">
                     {% if mood %}
                         <img id="moodIcon-week"
                              src="{{ url_for('static', filename='assets/images/mood_' ~ mood ~ '.png') }}"
@@ -139,7 +139,7 @@
                     <p class="summary-value">{{ calories }} kcal</p>
                 </div>
 
-                <div class="summary-card" id="mood-month">
+                <div class="summary-card" id="mood-summary-month">
                     {% if mood %}
                         <img id="moodIcon-month"
                              src="{{ url_for('static', filename='assets/images/mood_' ~ mood ~ '.png') }}"
@@ -176,7 +176,7 @@
                     <p class="summary-value">{{ calories }} kcal</p>
                 </div>
 
-                <div class="summary-card" id="mood-year">
+                <div class="summary-card" id="mood-summary-year">
                     {% if mood %}
                         <img id="moodIcon-year"
                              src="{{ url_for('static', filename='assets/images/mood_' ~ mood ~ '.png') }}"
