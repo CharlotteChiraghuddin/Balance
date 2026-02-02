@@ -51,36 +51,13 @@ def insights():
     if not user_id:
         return redirect(url_for('auth.login'))
 
-    # Get last 7 days of JournalDay objects
-    week_days = repo.get_user_data_week(user_id)
+    full_data_day = repo.get_user_data_daily(user_id)
+    full_data_week = repo.get_user_data_weekly(user_id)
+    full_data_month = repo.get_user_data_monthly(user_id)
+    full_data_year = repo.get_user_data_yearly(user_id)
 
-    # Get full detailed data (food, exercise, transactions)
-    full_data = repo.get_user_data_weekly(user_id)
-
-    # --- TODAY'S DATA ---
-    today = week_days[0] if week_days else None
-    mood = today.mood if today else None
-
-    # --- TODAY'S CALORIES ---
-    if full_data:
-        today_food = full_data[0]["food"]
-        today_exercise = full_data[0]["exercise"]
-
-        calories = sum(f["calories"] for f in today_food)
-        exercise_calories = sum(e["calories"] for e in today_exercise)
-    else:
-        calories = 0
-        exercise_calories = 0
-
-    return render_template(
-        "insights.html",
-        Date=datetime.now().date(),
-        mood=mood,
-        calories=calories,
-        exercise_calories=exercise_calories,
-        full_data=full_data,
-        today_data=today
-    )
+    
+    return render_template("insights.html", full_data_day=full_data_day, full_data_week=full_data_week, full_data_month=full_data_month, full_data_year=full_data_year)
 
 if __name__=="__main__":
     app.run(debug=True)

@@ -263,6 +263,63 @@ class Repository:
         finally:
             conn.close()
             
+        
+    def get_user_data_daily(self, user_id: int):
+        conn = self._get_conn()
+        try:
+            with conn.cursor(dictionary=True) as cur:
+
+                # Get the last 7 days for this user
+                cur.execute("""
+                    SELECT id, date, mood, reflection
+                    FROM journal_day
+                    WHERE user_id = %s
+                    AND date = CURDATE()
+                    ORDER BY date DESC
+                """, (user_id,))
+                days = cur.fetchall()
+
+                results = []
+
+                for day in days:
+                    day_id = day["id"]
+
+                    # Food entries
+                    cur.execute("""
+                        SELECT name, calories, meal_type
+                        FROM food
+                        WHERE journal_day_id = %s
+                    """, (day_id,))
+                    food = cur.fetchall()
+
+                    # Exercise entries
+                    cur.execute("""
+                        SELECT name, duration, calories
+                        FROM exercise
+                        WHERE journal_day_id = %s
+                    """, (day_id,))
+                    exercise = cur.fetchall()
+
+                    # Transaction entries
+                    cur.execute("""
+                        SELECT name, amount, category
+                        FROM transactions
+                        WHERE journal_day_id = %s
+                    """, (day_id,))
+                    transactions = cur.fetchall()
+
+                    results.append({
+                        "journal_day": day,
+                        "food": food,
+                        "exercise": exercise,
+                        "transactions": transactions
+                    })
+
+                return results
+
+        finally:
+            conn.close()
+
     def get_user_data_weekly(self, user_id: int):
         conn = self._get_conn()
         try:
@@ -274,6 +331,118 @@ class Repository:
                     FROM journal_day
                     WHERE user_id = %s
                     AND date >= CURDATE() - INTERVAL 7 DAY
+                    ORDER BY date DESC
+                """, (user_id,))
+                days = cur.fetchall()
+
+                results = []
+
+                for day in days:
+                    day_id = day["id"]
+
+                    # Food entries
+                    cur.execute("""
+                        SELECT name, calories, meal_type
+                        FROM food
+                        WHERE journal_day_id = %s
+                    """, (day_id,))
+                    food = cur.fetchall()
+
+                    # Exercise entries
+                    cur.execute("""
+                        SELECT name, duration, calories
+                        FROM exercise
+                        WHERE journal_day_id = %s
+                    """, (day_id,))
+                    exercise = cur.fetchall()
+
+                    # Transaction entries
+                    cur.execute("""
+                        SELECT name, amount, category
+                        FROM transactions
+                        WHERE journal_day_id = %s
+                    """, (day_id,))
+                    transactions = cur.fetchall()
+
+                    results.append({
+                        "journal_day": day,
+                        "food": food,
+                        "exercise": exercise,
+                        "transactions": transactions
+                    })
+
+                return results
+
+        finally:
+            conn.close()
+        
+    def get_user_data_monthly(self, user_id: int):
+        conn = self._get_conn()
+        try:
+            with conn.cursor(dictionary=True) as cur:
+
+                # Get the last 7 days for this user
+                cur.execute("""
+                    SELECT id, date, mood, reflection
+                    FROM journal_day
+                    WHERE user_id = %s
+                    AND date >= CURDATE() - INTERVAL 1 MONTH
+                    ORDER BY date DESC
+                """, (user_id,))
+                days = cur.fetchall()
+
+                results = []
+
+                for day in days:
+                    day_id = day["id"]
+
+                    # Food entries
+                    cur.execute("""
+                        SELECT name, calories, meal_type
+                        FROM food
+                        WHERE journal_day_id = %s
+                    """, (day_id,))
+                    food = cur.fetchall()
+
+                    # Exercise entries
+                    cur.execute("""
+                        SELECT name, duration, calories
+                        FROM exercise
+                        WHERE journal_day_id = %s
+                    """, (day_id,))
+                    exercise = cur.fetchall()
+
+                    # Transaction entries
+                    cur.execute("""
+                        SELECT name, amount, category
+                        FROM transactions
+                        WHERE journal_day_id = %s
+                    """, (day_id,))
+                    transactions = cur.fetchall()
+
+                    results.append({
+                        "journal_day": day,
+                        "food": food,
+                        "exercise": exercise,
+                        "transactions": transactions
+                    })
+
+                return results
+
+        finally:
+            conn.close()
+    
+    def get_user_data_yearly(self, user_id: int):
+        conn = self._get_conn()
+        try:
+            with conn.cursor(dictionary=True) as cur:
+
+                # Get the last 7 days for this user
+                cur.execute("""
+                    SELECT id, date, mood, reflection
+                    FROM journal_day
+                    WHERE user_id = %s
+                    AND date >= CURDATE() - INTERVAL 1 YEAR
                     ORDER BY date DESC
                 """, (user_id,))
                 days = cur.fetchall()
@@ -499,6 +668,24 @@ class Repository:
                 cur.execute(delete_sql, (exercise_id,))
                 conn.commit()
                 return cur.rowcount > 0
+        finally:
+            conn.close()
+            
+    def list_exercise_by_week(self, user_id: int) -> List[Exercise]:
+        select_sql = """
+            SELECT e.id, e.journal_day_id, e.name, e.duration, e.calories
+            FROM exercise e
+            JOIN journal_day jd ON e.journal_day_id = jd.id
+            WHERE jd.user_id = %s AND jd.date >= CURDATE() - INTERVAL 7 DAY
+        """
+
+        conn = self._get_conn()
+
+        try:
+            with conn.cursor(buffered=True) as cur:
+                cur.execute(select_sql, (user_id,))
+                rows = cur.fetchall()
+                return [Exercise(exercise_id=row[0], journal_day_id=row[1], name=row[2], duration=row[3], calories=row[4]) for row in rows]
         finally:
             conn.close()
 #------------- CRUD FOR Mood ----------------

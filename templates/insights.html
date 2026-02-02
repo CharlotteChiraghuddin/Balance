@@ -9,11 +9,49 @@
 {% block title %}Insights{% endblock %}
 
 {% block content %}
+<script id="allData-day" type="application/json">
+    {{ full_data_day | tojson }}
+</script>
+
+<script id="allData-week" type="application/json">
+    {{ full_data_week | tojson }}
+</script>
+
+<script id="allData-month" type="application/json">
+    {{ full_data_month | tojson }}
+</script>
+
+<script id="allData-year" type="application/json">
+    {{ full_data_year | tojson }}
+</script>
+
 <div class="insights">
+    <div id="toggle" class="toggle-slider">
+        <label class="toggle-option">
+            <input type="radio" name="view" value="day-view" checked>
+            <span>Day</span>
+        </label>
+
+        <label class="toggle-option">
+            <input type="radio" name="view" value="week-view">
+            <span>Week</span>
+        </label>
+
+        <label class="toggle-option">
+            <input type="radio" name="view" value="month-view">
+            <span>Month</span>
+        </label>
+
+        <label class="toggle-option">
+            <input type="radio" name="view" value="year-view">
+            <span>Year</span>
+        </label>
+    </div>
+
     <div class="insights-container">
 
         <!-- =======================
-             TODAY OVERVIEW
+             DAY VIEW
         ======================== -->
         <div id="day-view" class="insight-card">
 
@@ -23,14 +61,14 @@
 
             <div class="summary-today">
 
-                <div class="summary-card" id="calories-today">
+                <div class="summary-card" id="calories-day">
                     <h3>Calories Consumed</h3>
                     <p class="summary-value">{{ calories }} kcal</p>
                 </div>
 
-                <div class="summary-card" id="mood-today">
+                <div class="summary-card" id="mood-day">
                     {% if mood %}
-                        <img id="moodIcon"
+                        <img id="moodIcon-day"
                              src="{{ url_for('static', filename='assets/images/mood_' ~ mood ~ '.png') }}"
                              alt="Mood Icon">
                         <p class="summary-label">Overall Mood: {{ mood }}</p>
@@ -39,34 +77,124 @@
                     {% endif %}
                 </div>
 
-                <div class="summary-card" id="exercise-today">
-                    <h3>Exercise This week</h3>
-                    <p class="summary-value">{{ exercise_calories }} kcal</p>
-                    <div id="exercise-chart"></div>
+                <div class="summary-card" id="exercise-day">
+                    <div id="exercise-chartdiv-day"></div>
                 </div>
 
             </div>
 
-            <!-- =======================
-                 TODAY'S TRANSACTIONS
-            ======================== -->
-            <div class="chart-card">
-                <h3>Today's Transactions</h3>
-
-                {% if full_data and full_data[0]["transactions"] %}
-                    <canvas id="transactionsChart"></canvas>
-                {% else %}
-                    <p class="empty-state">No transactions logged today</p>
-                {% endif %}
-            </div>
+            <div id="transaction-chartdiv-day"></div>
 
         </div>
 
-        <div class="select-option">
-            <a href="{{ url_for('logbook.logbook_food') }}" class="card-option"><img src="{{ url_for('static', filename='assets/images/food.png') }}" alt="Food"></a>
-            <a href="{{ url_for('logbook.logbook_exercise') }}" class="card-option"><img src="{{ url_for('static', filename='assets/images/exercise.png') }}" alt="Exercise"></a>
-            <a href="{{ url_for('logbook.logbook_finances') }}" class="card-option"><img src="{{ url_for('static', filename='assets/images/finance.png') }}" alt="Finance"></a>
-            <a href="{{ url_for('logbook.logbook_mood') }}" class="card-option"><img src="{{ url_for('static', filename='assets/images/mood.png') }}" alt="Mood"></a>
+        <!-- =======================
+             WEEK VIEW
+        ======================== -->
+        <div id="week-view" class="insight-card" style="display: none">
+
+            <div class="header-row">
+                <h2>Week — {{ Date }}</h2>
+            </div>
+
+            <div class="summary-today">
+
+                <div class="summary-card" id="calories-week">
+                    <h3>Calories Consumed</h3>
+                    <p class="summary-value">{{ calories }} kcal</p>
+                </div>
+
+                <div class="summary-card" id="mood-week">
+                    {% if mood %}
+                        <img id="moodIcon-week"
+                             src="{{ url_for('static', filename='assets/images/mood_' ~ mood ~ '.png') }}"
+                             alt="Mood Icon">
+                        <p class="summary-label">Overall Mood: {{ mood }}</p>
+                    {% else %}
+                        <p>No mood logged today</p>
+                    {% endif %}
+                </div>
+
+                <div class="summary-card" id="exercise-week">
+                    <div id="exercise-chartdiv-week"></div>
+                </div>
+
+            </div>
+
+            <div id="transaction-chartdiv-week"></div>
+
+        </div>
+
+        <!-- =======================
+             MONTH VIEW
+        ======================== -->
+        <div id="month-view" class="insight-card" style="display: none">
+
+            <div class="header-row">
+                <h2>Month — {{ Date }}</h2>
+            </div>
+            <div class="summary-today">
+
+                <div class="summary-card" id="calories-month">
+                    <h3>Calories Consumed</h3>
+                    <p class="summary-value">{{ calories }} kcal</p>
+                </div>
+
+                <div class="summary-card" id="mood-month">
+                    {% if mood %}
+                        <img id="moodIcon-month"
+                             src="{{ url_for('static', filename='assets/images/mood_' ~ mood ~ '.png') }}"
+                             alt="Mood Icon">
+                        <p class="summary-label">Overall Mood: {{ mood }}</p>
+                    {% else %}
+                        <p>No mood logged today</p>
+                    {% endif %}
+                </div>
+
+                <div class="summary-card" id="exercise-month">
+                    <div id="exercise-chartdiv-month"></div>
+                </div>
+
+            </div>
+
+            <div id="transaction-chartdiv-month"></div>
+
+        </div>
+
+        <!-- =======================
+             YEAR VIEW
+        ======================== -->
+        <div id="year-view" class="insight-card" style="display: none">
+
+            <div class="header-row">
+                <h2>Year — {{ Date }}</h2>
+            </div>
+
+            <div class="summary-today">
+
+                <div class="summary-card" id="calories-year">
+                    <h3>Calories Consumed</h3>
+                    <p class="summary-value">{{ calories }} kcal</p>
+                </div>
+
+                <div class="summary-card" id="mood-year">
+                    {% if mood %}
+                        <img id="moodIcon-year"
+                             src="{{ url_for('static', filename='assets/images/mood_' ~ mood ~ '.png') }}"
+                             alt="Mood Icon">
+                        <p class="summary-label">Overall Mood: {{ mood }}</p>
+                    {% else %}
+                        <p>No mood logged today</p>
+                    {% endif %}
+                </div>
+
+                <div class="summary-card" id="exercise-year">
+                    <div id="exercise-chartdiv-year"></div>
+                </div>
+
+            </div>
+
+            <div id="transaction-chartdiv-year"></div>
+
         </div>
 
     </div>
@@ -78,12 +206,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Pass weekly data to JS -->
-<script>
-    const weekData = JSON.parse(`{{ full_data | tojson | safe }}`);
-</script>
-
 <!-- Your external chart logic -->
+<script src="https://cdn.amcharts.com/lib/5/percent.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
 <script src="{{ url_for('static', filename='js/insight.js') }}"></script>
-
 {% endblock %}

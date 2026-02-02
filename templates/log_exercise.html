@@ -9,7 +9,16 @@
 <form action="{{ url_for('exercise.submit_exercise') }}" method="POST">
     <div class="form-group">
         <label for="exercise-name">Exercise Name:</label>
-        <input type="text" id="exercise-name" name="exercise-name" required>
+        <select id="exercise-name" name="exercise-name" required>
+            <option value="" disabled selected>Select an exercise</option>
+            <option value="Running">Running</option>
+            <option value="Cycling">Cycling</option>
+            <option value="Swimming">Swimming</option>
+            <option value="Weight Lifting">Weight Lifting</option>
+            <option value="Yoga">Yoga</option>
+            <option value="Hiking">Hiking</option>
+            <option value="Other">Other</option>
+        </select>
     </div>
     <div class="form-group">
         <label for="duration">Duration (minutes):</label>
