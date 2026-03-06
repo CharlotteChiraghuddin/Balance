@@ -91,6 +91,3 @@ def insights():
         full_data_month=full_data_month,
         full_data_year=full_data_year
     )
-
-if __name__ == "__main__":
-    app.run(debug=True)
