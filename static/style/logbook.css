@@ -108,6 +108,77 @@ img{
 }
 
 
+button{
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+
+  background: var(--button-color);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+button:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 0 15px rgba(225, 148, 168, 0.7),
+    0 0 30px rgba(225, 148, 168, 0.4);
+}
+
+/* SLIDER WRAPPER */
+.toggle-slider {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--card-bg-color);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 6px;
+    gap: 6px;
+    width: fit-content;
+    margin: 0 auto 10px auto;
+}
+
+/* HIDE DEFAULT RADIO */
+.toggle-slider input[type="radio"] {
+    display: none;
+}
+
+/* EACH OPTION */
+.toggle-option {
+    position: relative;
+    cursor: pointer;
+}
+
+.toggle-option span {
+    display: inline-block;
+    padding: 8px 18px;
+    border-radius: 8px;
+    color: var(--text-color);
+    font-weight: 500;
+    transition: all 0.25s ease;
+    opacity: 0.7;
+}
+
+/* SELECTED STATE */
+.toggle-slider input[type="radio"]:checked + span {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    opacity: 1;
+    color: var(--text-hover-color);
+    box-shadow: 0 0 10px rgba(255,255,255,0.15);
+}
+
+/* HOVER */
+.toggle-option span:hover {
+    opacity: 1;
+}
+
 /* ----------------------------------
    RESPONSIVE TWEAKS
 -------------------------------------*/

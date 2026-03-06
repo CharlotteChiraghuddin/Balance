@@ -1,0 +1,95 @@
+{% extends "layout.html" %}
+
+{% block title %}View Logged Food{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/logbook.css') }}">
+{% endblock %}
+
+{% block content %}
+<div id="toggle" class="toggle-slider">
+        <label class="toggle-option">
+            <input type="radio" name="view" value="day-view" checked>
+            <span>Day</span>
+        </label>
+
+        <label class="toggle-option">
+            <input type="radio" name="view" value="week-view">
+            <span>Week</span>
+        </label>
+
+        <label class="toggle-option">
+            <input type="radio" name="view" value="month-view">
+            <span>Month</span>
+        </label>
+
+        <label class="toggle-option">
+            <input type="radio" name="view" value="year-view">
+            <span>Year</span>
+        </label>
+    </div>
+<table id="daily">
+    <tr>
+        <th>Name</th>
+        <th>Calories</th>
+        <th>Time Logged</th>
+    </tr>
+
+    {% for food in foods_daily %}
+    <tr>
+        <td>{{ food.name }}</td>
+        <td>{{ food.calories }}</td>
+        <td>{{ food.logged_at }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<table id="weekly">
+    <tr>
+        <th>Name</th>
+        <th>Calories</th>
+        <th>Time Logged</th>
+    </tr>
+
+    {% for food in food_weekly %}
+    <tr>
+        <td>{{ food.name }}</td>
+        <td>{{ food.calories }}</td>
+        <td>{{ food.logged_at }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<table id="monthly">
+    <tr>
+        <th>Name</th>
+        <th>Calories</th>
+        <th>Time Logged</th>
+    </tr>
+
+    {% for food in food_monthly %}
+    <tr>
+        <td>{{ food.name }}</td>
+        <td>{{ food.calories }}</td>
+        <td>{{ food.logged_at }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<table id="yearly">
+    <tr>
+        <th>Name</th>
+        <th>Calories</th>
+        <th>Time Logged</th>
+    </tr>
+
+    {% for food in foods_yearly %}
+    <tr>
+        <td>{{ food.name }}</td>
+        <td>{{ food.calories }}</td>
+        <td>{{ food.logged_at }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}
