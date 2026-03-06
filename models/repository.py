@@ -1,131 +1,116 @@
-import mysql.connector
-from mysql.connector import pooling, Error
 import os
 from typing import List, Optional, Any, Dict
+from datetime import date, time
+
 from models.users import User
 from models.journal_day import JournalDay
 from models.food import Food
 from models.transaction import Transaction
 from models.exercise import Exercise
-from datetime import date, time
+
+from sqlalchemy import create_engine, text
+
+# Read the PostgreSQL connection URL from Render
+db_url = os.getenv("DATABASE_URL")
+
+# Create a global SQLAlchemy engine
+engine = create_engine(db_url)
+
 
 
 
 class Repository:
-    
-    def __init__(
-        self,
-        host: str="127.0.0.1",
-        port: int=3306,
-        user: str="root",
-        password: str= os.getenv("MYSQL_PASSWORD"),
-        database: str="journal_db",
-        use_pool: bool=True,
-        pool_name: str ="journal_pool",
-        pool_size: int=5,
-        ensure_schema: bool = True,
-    )-> None:
-        self._db_config: Dict[str,Any] = {
-            "host": host,
-            "port": port,
-            "user": user,
-            "password": password,
-            "database": database,
-        }
-        self._pool = None
 
-        if use_pool:
-            self._pool=pooling.MySQLConnectionPool(
-                pool_name=pool_name,
-                pool_size=pool_size,
-                **self._db_config
-            )
-        if ensure_schema:
-            self.ensure_table()
+    def __init__(self):
+        # No MySQL config, no pooling, no host/port/user/password
+        # SQLAlchemy engine is already created globally at the top of the file
+        pass
 
     #---------Connection Helpers--------------
     def _get_conn(self):
-        return self._pool.get_connection() if self._pool else mysql.connector.connect(**self._db_config)
+        # SQLAlchemy uses engine.connect() instead of MySQL pools
+        return engine.connect()
 
-    def ensure_table(self)-> None:
-        ddl_users= """
+    def ensure_table(self) -> None:
+        # PostgreSQL-compatible DDL (AUTO_INCREMENT → SERIAL, VARCHAR stays fine)
+        ddl_users = """
         CREATE TABLE IF NOT EXISTS users(
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        first_name VARCHAR(255) NOT NULL,
-        last_name VARCHAR(255) NOT NULL,
-        email VARCHAR(255) NOT NULL,
-        password_hash VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
+            id SERIAL PRIMARY KEY,
+            first_name VARCHAR(255) NOT NULL,
+            last_name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
         """
-        ddl_journal_day="""
+
+        ddl_journal_day = """
         CREATE TABLE IF NOT EXISTS journal_day(
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT,
-        FOREIGN KEY (user_id) REFERENCES users(id),
-        date DATE NOT NULL,
-        mood VARCHAR(255),
-        reflection VARCHAR(255)
-        )"""
-        ddl_song="""
+            id SERIAL PRIMARY KEY,
+            user_id INT REFERENCES users(id),
+            date DATE NOT NULL,
+            mood VARCHAR(255),
+            reflection VARCHAR(255)
+        );
+        """
+
+        ddl_song = """
         CREATE TABLE IF NOT EXISTS song(
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        artist VARCHAR(255) NOT NULL,
-        genre VARCHAR(50) NOT NULL
-        )"""
-        ddl_listening_session="""
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            artist VARCHAR(255) NOT NULL,
+            genre VARCHAR(50) NOT NULL
+        );
+        """
+
+        ddl_listening_session = """
         CREATE TABLE IF NOT EXISTS listening_session(
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        journal_day_id INT,
-        song_id INT,
-        FOREIGN KEY (journal_day_id) REFERENCES journal_day(id),
-        FOREIGN KEY (song_id) REFERENCES song(id),
-        played_at TIME NOT NULL)"""
+            id SERIAL PRIMARY KEY,
+            journal_day_id INT REFERENCES journal_day(id),
+            song_id INT REFERENCES song(id),
+            played_at TIME NOT NULL
+        );
+        """
 
-        ddl_transactions="""
+        ddl_transactions = """
         CREATE TABLE IF NOT EXISTS transactions(
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        journal_day_id INT,
-        FOREIGN KEY (journal_day_id) REFERENCES journal_day(id),
-        name VARCHAR(50) NOT NULL,
-        amount INT NOT NULL,
-        category VARCHAR(50)
-        )"""
-        ddl_food="""
+            id SERIAL PRIMARY KEY,
+            journal_day_id INT REFERENCES journal_day(id),
+            name VARCHAR(50) NOT NULL,
+            amount INT NOT NULL,
+            category VARCHAR(50)
+        );
+        """
+
+        ddl_food = """
         CREATE TABLE IF NOT EXISTS food(
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        journal_day_id INT,
-        FOREIGN KEY (journal_day_id) REFERENCES journal_day(id),
-        name VARCHAR(50) NOT NULL,
-        calories INT NOT NULL,
-        meal_type VARCHAR(10)
-        )"""
+            id SERIAL PRIMARY KEY,
+            journal_day_id INT REFERENCES journal_day(id),
+            name VARCHAR(50) NOT NULL,
+            calories INT NOT NULL,
+            meal_type VARCHAR(10)
+        );
+        """
 
-        ddl_exercise="""
+        ddl_exercise = """
         CREATE TABLE IF NOT EXISTS exercise(
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        journal_day_id INT,
-        FOREIGN KEY (journal_day_id) REFERENCES journal_day(id),
-        name VARCHAR(50) NOT NULL,
-        duration INT NOT NULL,
-        calories INT NOT NULL
-        )"""
-        
+            id SERIAL PRIMARY KEY,
+            journal_day_id INT REFERENCES journal_day(id),
+            name VARCHAR(50) NOT NULL,
+            duration INT NOT NULL,
+            calories INT NOT NULL
+        );
+        """
 
-        conn = self._get_conn()
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(ddl_users)
-                cur.execute(ddl_journal_day)
-                cur.execute(ddl_song)
-                cur.execute(ddl_listening_session)
-                cur.execute(ddl_transactions)
-                cur.execute(ddl_food)
-                cur.execute(ddl_exercise)
-                conn.commit()
-        finally:
-            conn.close()
+        # Execute all DDL statements using SQLAlchemy
+        with engine.begin() as conn:
+            conn.execute(text(ddl_users))
+            conn.execute(text(ddl_journal_day))
+            conn.execute(text(ddl_song))
+            conn.execute(text(ddl_listening_session))
+            conn.execute(text(ddl_transactions))
+            conn.execute(text(ddl_food))
+            conn.execute(text(ddl_exercise))
 
     #------------- CRUD FOR USERS ----------------
 
@@ -136,636 +121,587 @@ class Repository:
 
         insert_sql = """
             INSERT INTO users (first_name, last_name, email, password_hash)
-            VALUES (%s, %s, %s, %s)
+            VALUES (:first_name, :last_name, :email, :password_hash)
+            RETURNING id, created_at;
         """
 
-        conn = self._get_conn()
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(insert_sql, (first_name, last_name, email, password_hash))
-                conn.commit()
-                user_id = cur.lastrowid
+        with engine.begin() as conn:
+            result = conn.execute(
+                text(insert_sql),
+                {
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "email": email,
+                    "password_hash": password_hash
+                }
+            )
 
-                # fetch created_at
-                cur.execute("SELECT created_at FROM users WHERE id = %s", (user_id,))
-                created_at = cur.fetchone()[0]
+            row = result.fetchone()
+            user_id = row.id
+            created_at = row.created_at
 
-                return User(
-                    user_id=user_id,
-                    first_name=first_name,
-                    last_name=last_name,
-                    email=email,
-                    password_hash=password_hash,
-                    created_at=created_at
-                )
-        finally:
-            conn.close()
+            return User(
+                user_id=user_id,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                password_hash=password_hash,
+                created_at=created_at
+            )
 
+    #------------- CRUD FOR USERS ----------------
 
     def list_all_users(self) -> List[User]:
-        select_sql = "SELECT id, first_name, last_name, email, password_hash, created_at FROM users"
-        conn = self._get_conn()
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(select_sql)
-                rows = cur.fetchall()
-                return [User(user_id=row[0], first_name=row[1], last_name=row[2], email=row[3], password_hash=row[4], created_at=row[5]) for row in rows]
-        finally:
-            conn.close()
-    def get_user_by_id(self, user_id: int) -> Optional[User]:
-        select_sql = "SELECT id, first_name, last_name, email, password_hash, created_at FROM users WHERE id = %s"
-        conn = self._get_conn()
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(select_sql, (user_id,))
-                row = cur.fetchone()
-                if row:
-                    return User(user_id=row[0], first_name=row[1], last_name=row[2], email=row[3], password_hash=row[4], created_at=row[5])
-                return None
-        finally:
-            conn.close()
-        
-    def update_user_email(self, user_id: int, new_email: str) -> bool:
-        update_sql = "UPDATE users SET email = %s WHERE id = %s"
-        conn = self._get_conn()
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(update_sql, (new_email, user_id))
-                conn.commit()
-                return cur.rowcount > 0
-        finally:
-            conn.close()
-    def delete_user(self, user_id: int) -> bool:
-        delete_sql = "DELETE FROM users WHERE id = %s"
-        conn = self._get_conn()
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(delete_sql, (user_id,))
-                conn.commit()
-                return cur.rowcount > 0
-        finally:
-            conn.close()
-    def get_user_by_email(self, email: str) -> User | None:
         sql = """
             SELECT id, first_name, last_name, email, password_hash, created_at
             FROM users
-            WHERE email = %s
         """
 
-        conn = self._get_conn()
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(sql, (email,))
-                row = cur.fetchone()  # ⭐ THIS IS REQUIRED
+        with engine.connect() as conn:
+            result = conn.execute(text(sql))
+            rows = result.fetchall()
 
-                if row is None:
-                    return None
-
-                return User(
-                    user_id=row[0],
-                    first_name=row[1],
-                    last_name=row[2],
-                    email=row[3],
-                    password_hash=row[4],
-                    created_at=row[5]
+            return [
+                User(
+                    user_id=row.id,
+                    first_name=row.first_name,
+                    last_name=row.last_name,
+                    email=row.email,
+                    password_hash=row.password_hash,
+                    created_at=row.created_at
                 )
-        finally:
-            conn.close()
+                for row in rows
+            ]
+
+
+    def get_user_by_id(self, user_id: int) -> Optional[User]:
+        sql = """
+            SELECT id, first_name, last_name, email, password_hash, created_at
+            FROM users
+            WHERE id = :user_id
+        """
+
+        with engine.connect() as conn:
+            result = conn.execute(text(sql), {"user_id": user_id})
+            row = result.fetchone()
+
+            if row is None:
+                return None
+
+            return User(
+                user_id=row.id,
+                first_name=row.first_name,
+                last_name=row.last_name,
+                email=row.email,
+                password_hash=row.password_hash,
+                created_at=row.created_at
+            )
+
+
+    def update_user_email(self, user_id: int, new_email: str) -> bool:
+        sql = """
+            UPDATE users
+            SET email = :email
+            WHERE id = :user_id
+        """
+
+        with engine.begin() as conn:
+            result = conn.execute(
+                text(sql),
+                {"email": new_email, "user_id": user_id}
+            )
+
+            return result.rowcount > 0
+
+
+    def delete_user(self, user_id: int) -> bool:
+        sql = """
+            DELETE FROM users
+            WHERE id = :user_id
+        """
+
+        with engine.begin() as conn:
+            result = conn.execute(text(sql), {"user_id": user_id})
+            return result.rowcount > 0
+
+
+    def get_user_by_email(self, email: str) -> Optional[User]:
+        sql = """
+            SELECT id, first_name, last_name, email, password_hash, created_at
+            FROM users
+            WHERE email = :email
+        """
+
+        with engine.connect() as conn:
+            result = conn.execute(text(sql), {"email": email})
+            row = result.fetchone()
+
+            if row is None:
+                return None
+
+            return User(
+                user_id=row.id,
+                first_name=row.first_name,
+                last_name=row.last_name,
+                email=row.email,
+                password_hash=row.password_hash,
+                created_at=row.created_at
+            )
+
 
     def get_user_data_week(self, user_id: int):
-        select_sql = """
-            SELECT *
+        sql = """
+            SELECT id, user_id, date, mood, reflection
             FROM journal_day
-            WHERE user_id = %s
-            AND date >= CURDATE() - INTERVAL 7 DAY
+            WHERE user_id = :user_id
+            AND date >= CURRENT_DATE - INTERVAL '7 days'
             ORDER BY date DESC
         """
-        conn = self._get_conn()
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(select_sql, (user_id,))
-                rows = cur.fetchall()
 
-                if not rows:
-                    return []
+        with engine.connect() as conn:
+            result = conn.execute(text(sql), {"user_id": user_id})
+            rows = result.fetchall()
 
-                week = []
-                for row in rows:
-                    week.append(JournalDay(
-                        journal_day_id=row[0],
-                        user_id=row[1],
-                        date=row[2],
-                        mood=row[3],
-                        reflection=row[4]
-                    ))
+            if not rows:
+                return []
 
-                return week
-        finally:
-            conn.close()
-            
-        
+            week = []
+            for row in rows:
+                week.append(JournalDay(
+                    journal_day_id=row.id,
+                    user_id=row.user_id,
+                    date=row.date,
+                    mood=row.mood,
+                    reflection=row.reflection
+                ))
+
+            return week
+
     def get_user_data_daily(self, user_id: int):
-        conn = self._get_conn()
-        try:
-            with conn.cursor(dictionary=True) as cur:
+        with engine.connect() as conn:
 
-                # Get the last 7 days for this user
-                cur.execute("""
-                    SELECT id, date, mood, reflection
-                    FROM journal_day
-                    WHERE user_id = %s
-                    AND date = CURDATE()
-                    ORDER BY date DESC
-                """, (user_id,))
-                days = cur.fetchall()
+            # Get today's journal_day entry
+            days_sql = """
+                SELECT id, date, mood, reflection
+                FROM journal_day
+                WHERE user_id = :user_id
+                AND date = CURRENT_DATE
+                ORDER BY date DESC
+            """
 
-                results = []
+            days = conn.execute(text(days_sql), {"user_id": user_id}).fetchall()
+            results = []
 
-                for day in days:
-                    day_id = day["id"]
+            for day in days:
+                day_id = day.id
 
-                    # Food entries
-                    cur.execute("""
-                        SELECT name, calories, meal_type
-                        FROM food
-                        WHERE journal_day_id = %s
-                    """, (day_id,))
-                    food = cur.fetchall()
+                food = conn.execute(
+                    text("SELECT name, calories, meal_type FROM food WHERE journal_day_id = :id"),
+                    {"id": day_id}
+                ).fetchall()
 
-                    # Exercise entries
-                    cur.execute("""
-                        SELECT name, duration, calories
-                        FROM exercise
-                        WHERE journal_day_id = %s
-                    """, (day_id,))
-                    exercise = cur.fetchall()
+                exercise = conn.execute(
+                    text("SELECT name, duration, calories FROM exercise WHERE journal_day_id = :id"),
+                    {"id": day_id}
+                ).fetchall()
 
-                    # Transaction entries
-                    cur.execute("""
-                        SELECT name, amount, category
-                        FROM transactions
-                        WHERE journal_day_id = %s
-                    """, (day_id,))
-                    transactions = cur.fetchall()
+                transactions = conn.execute(
+                    text("SELECT name, amount, category FROM transactions WHERE journal_day_id = :id"),
+                    {"id": day_id}
+                ).fetchall()
 
-                    results.append({
-                        "journal_day": day,
-                        "food": food,
-                        "exercise": exercise,
-                        "transactions": transactions
-                    })
+                results.append({
+                    "journal_day": {
+                        "id": day.id,
+                        "date": day.date,
+                        "mood": day.mood,
+                        "reflection": day.reflection
+                    },
+                    "food": [dict(row) for row in food],
+                    "exercise": [dict(row) for row in exercise],
+                    "transactions": [dict(row) for row in transactions]
+                })
 
-                return results
-
-        finally:
-            conn.close()
-
-    def get_user_data_weekly(self, user_id: int):
-        conn = self._get_conn()
-        try:
-            with conn.cursor(dictionary=True) as cur:
-
-                # Get the last 7 days for this user
-                cur.execute("""
-                    SELECT id, date, mood, reflection
-                    FROM journal_day
-                    WHERE user_id = %s
-                    AND date >= CURDATE() - INTERVAL 7 DAY
-                    ORDER BY date DESC
-                """, (user_id,))
-                days = cur.fetchall()
-
-                results = []
-
-                for day in days:
-                    day_id = day["id"]
-
-                    # Food entries
-                    cur.execute("""
-                        SELECT name, calories, meal_type
-                        FROM food
-                        WHERE journal_day_id = %s
-                    """, (day_id,))
-                    food = cur.fetchall()
-
-                    # Exercise entries
-                    cur.execute("""
-                        SELECT name, duration, calories
-                        FROM exercise
-                        WHERE journal_day_id = %s
-                    """, (day_id,))
-                    exercise = cur.fetchall()
-
-                    # Transaction entries
-                    cur.execute("""
-                        SELECT name, amount, category
-                        FROM transactions
-                        WHERE journal_day_id = %s
-                    """, (day_id,))
-                    transactions = cur.fetchall()
-
-                    results.append({
-                        "journal_day": day,
-                        "food": food,
-                        "exercise": exercise,
-                        "transactions": transactions
-                    })
-
-                return results
-
-        finally:
-            conn.close()
+            return results
         
+    def get_user_data_weekly(self, user_id: int):
+        with engine.connect() as conn:
+
+            days_sql = """
+                SELECT id, date, mood, reflection
+                FROM journal_day
+                WHERE user_id = :user_id
+                AND date >= CURRENT_DATE - INTERVAL '7 days'
+                ORDER BY date DESC
+            """
+
+            days = conn.execute(text(days_sql), {"user_id": user_id}).fetchall()
+            results = []
+
+            for day in days:
+                day_id = day.id
+
+                food = conn.execute(
+                    text("SELECT name, calories, meal_type FROM food WHERE journal_day_id = :id"),
+                    {"id": day_id}
+                ).fetchall()
+
+                exercise = conn.execute(
+                    text("SELECT name, duration, calories FROM exercise WHERE journal_day_id = :id"),
+                    {"id": day_id}
+                ).fetchall()
+
+                transactions = conn.execute(
+                    text("SELECT name, amount, category FROM transactions WHERE journal_day_id = :id"),
+                    {"id": day_id}
+                ).fetchall()
+
+                results.append({
+                    "journal_day": {
+                        "id": day.id,
+                        "date": day.date,
+                        "mood": day.mood,
+                        "reflection": day.reflection
+                    },
+                    "food": [dict(row) for row in food],
+                    "exercise": [dict(row) for row in exercise],
+                    "transactions": [dict(row) for row in transactions]
+                })
+
+            return results
+ 
     def get_user_data_monthly(self, user_id: int):
-        conn = self._get_conn()
-        try:
-            with conn.cursor(dictionary=True) as cur:
+        with engine.connect() as conn:
 
-                # Get the last 7 days for this user
-                cur.execute("""
-                    SELECT id, date, mood, reflection
-                    FROM journal_day
-                    WHERE user_id = %s
-                    AND date >= CURDATE() - INTERVAL 1 MONTH
-                    ORDER BY date DESC
-                """, (user_id,))
-                days = cur.fetchall()
+            # Get the last month of journal_day entries
+            days_sql = """
+                SELECT id, date, mood, reflection
+                FROM journal_day
+                WHERE user_id = :user_id
+                AND date >= CURRENT_DATE - INTERVAL '1 month'
+                ORDER BY date DESC
+            """
 
-                results = []
+            days = conn.execute(text(days_sql), {"user_id": user_id}).fetchall()
+            results = []
 
-                for day in days:
-                    day_id = day["id"]
+            for day in days:
+                day_id = day.id
 
-                    # Food entries
-                    cur.execute("""
-                        SELECT name, calories, meal_type
-                        FROM food
-                        WHERE journal_day_id = %s
-                    """, (day_id,))
-                    food = cur.fetchall()
+                food = conn.execute(
+                    text("SELECT name, calories, meal_type FROM food WHERE journal_day_id = :id"),
+                    {"id": day_id}
+                ).fetchall()
 
-                    # Exercise entries
-                    cur.execute("""
-                        SELECT name, duration, calories
-                        FROM exercise
-                        WHERE journal_day_id = %s
-                    """, (day_id,))
-                    exercise = cur.fetchall()
+                exercise = conn.execute(
+                    text("SELECT name, duration, calories FROM exercise WHERE journal_day_id = :id"),
+                    {"id": day_id}
+                ).fetchall()
 
-                    # Transaction entries
-                    cur.execute("""
-                        SELECT name, amount, category
-                        FROM transactions
-                        WHERE journal_day_id = %s
-                    """, (day_id,))
-                    transactions = cur.fetchall()
+                transactions = conn.execute(
+                    text("SELECT name, amount, category FROM transactions WHERE journal_day_id = :id"),
+                    {"id": day_id}
+                ).fetchall()
 
-                    results.append({
-                        "journal_day": day,
-                        "food": food,
-                        "exercise": exercise,
-                        "transactions": transactions
-                    })
+                results.append({
+                    "journal_day": {
+                        "id": day.id,
+                        "date": day.date,
+                        "mood": day.mood,
+                        "reflection": day.reflection
+                    },
+                    "food": [dict(row) for row in food],
+                    "exercise": [dict(row) for row in exercise],
+                    "transactions": [dict(row) for row in transactions]
+                })
 
-                return results
+            return results
 
-        finally:
-            conn.close()
-    
     def get_user_data_yearly(self, user_id: int):
-        conn = self._get_conn()
-        try:
-            with conn.cursor(dictionary=True) as cur:
+        with engine.connect() as conn:
 
-                # Get the last 7 days for this user
-                cur.execute("""
-                    SELECT id, date, mood, reflection
-                    FROM journal_day
-                    WHERE user_id = %s
-                    AND date >= CURDATE() - INTERVAL 1 YEAR
-                    ORDER BY date DESC
-                """, (user_id,))
-                days = cur.fetchall()
+            # Get the last year of journal_day entries
+            days_sql = """
+                SELECT id, date, mood, reflection
+                FROM journal_day
+                WHERE user_id = :user_id
+                AND date >= CURRENT_DATE - INTERVAL '1 year'
+                ORDER BY date DESC
+            """
 
-                results = []
+            days = conn.execute(text(days_sql), {"user_id": user_id}).fetchall()
+            results = []
 
-                for day in days:
-                    day_id = day["id"]
+            for day in days:
+                day_id = day.id
 
-                    # Food entries
-                    cur.execute("""
-                        SELECT name, calories, meal_type
-                        FROM food
-                        WHERE journal_day_id = %s
-                    """, (day_id,))
-                    food = cur.fetchall()
+                food = conn.execute(
+                    text("SELECT name, calories, meal_type FROM food WHERE journal_day_id = :id"),
+                    {"id": day_id}
+                ).fetchall()
 
-                    # Exercise entries
-                    cur.execute("""
-                        SELECT name, duration, calories
-                        FROM exercise
-                        WHERE journal_day_id = %s
-                    """, (day_id,))
-                    exercise = cur.fetchall()
+                exercise = conn.execute(
+                    text("SELECT name, duration, calories FROM exercise WHERE journal_day_id = :id"),
+                    {"id": day_id}
+                ).fetchall()
 
-                    # Transaction entries
-                    cur.execute("""
-                        SELECT name, amount, category
-                        FROM transactions
-                        WHERE journal_day_id = %s
-                    """, (day_id,))
-                    transactions = cur.fetchall()
+                transactions = conn.execute(
+                    text("SELECT name, amount, category FROM transactions WHERE journal_day_id = :id"),
+                    {"id": day_id}
+                ).fetchall()
 
-                    results.append({
-                        "journal_day": day,
-                        "food": food,
-                        "exercise": exercise,
-                        "transactions": transactions
-                    })
+                results.append({
+                    "journal_day": {
+                        "id": day.id,
+                        "date": day.date,
+                        "mood": day.mood,
+                        "reflection": day.reflection
+                    },
+                    "food": [dict(row) for row in food],
+                    "exercise": [dict(row) for row in exercise],
+                    "transactions": [dict(row) for row in transactions]
+                })
 
-                return results
-
-        finally:
-            conn.close()
+            return results
+        
     #------------- CRUD FOR journal_day ----------------
 
     def add_journal_day(self, user_id: int, date: str, mood: str, reflection: str) -> JournalDay:
-        insert_sql = """
+        sql = """
             INSERT INTO journal_day (user_id, date, mood, reflection)
-            VALUES (%s, %s, %s, %s)
+            VALUES (:user_id, :date, :mood, :reflection)
+            RETURNING id;
         """
 
-        conn = self._get_conn()
-
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(insert_sql, (user_id, date, mood, reflection))
-                conn.commit()
-                journal_day_id = cur.lastrowid
-                return journal_day_id
-
-        finally:
-            conn.close()
-
+        with engine.begin() as conn:
+            result = conn.execute(
+                text(sql),
+                {"user_id": user_id, "date": date, "mood": mood, "reflection": reflection}
+            )
+            journal_day_id = result.scalar()
+            return journal_day_id
+        
     def get_journal_id_by_date(self, user_id: int, date: str) -> Optional[int]:
-        select_sql = """
-            SELECT id FROM journal_day WHERE date = %s AND user_id = %s
+        sql = """
+            SELECT id FROM journal_day
+            WHERE date = :date AND user_id = :user_id
         """
 
-        conn = self._get_conn()
+        with engine.connect() as conn:
+            row = conn.execute(text(sql), {"date": date, "user_id": user_id}).fetchone()
+            return row.id if row else None
 
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(select_sql, (date, user_id))
-                row = cur.fetchone()
-
-                if row:
-                    return row[0]   # journal_day_id
-                else:
-                    return None
-        finally:
-            conn.close()
 
     #------------- CRUD FOR Food ----------------
             
     def add_food(self, journal_day_id: int, name: str, calories: int, meal_type: str) -> Food:
-        insert_sql = """
+        sql = """
             INSERT INTO food (journal_day_id, name, calories, meal_type)
-            VALUES (%s, %s, %s, %s)
+            VALUES (:journal_day_id, :name, :calories, :meal_type)
+            RETURNING id;
         """
 
-        conn = self._get_conn()
-
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(insert_sql, (journal_day_id, name, calories, meal_type))
-                conn.commit()
-                food_id = cur.lastrowid
-                return Food(food_id=food_id, journal_day_id=journal_day_id, name=name, calories=calories, meal_type=meal_type)
-        finally:
-            conn.close()
+        with engine.begin() as conn:
+            result = conn.execute(
+                text(sql),
+                {
+                    "journal_day_id": journal_day_id,
+                    "name": name,
+                    "calories": calories,
+                    "meal_type": meal_type
+                }
+            )
+            food_id = result.scalar()
+            return Food(food_id=food_id, journal_day_id=journal_day_id, name=name, calories=calories, meal_type=meal_type)
 
     def list_food_by_journal_day(self, journal_day_id: int) -> List[Food]:
-        select_sql = """
-            SELECT id, name, calories, meal_type FROM food WHERE journal_day_id = %s
+        sql = """
+            SELECT id, name, calories, meal_type
+            FROM food
+            WHERE journal_day_id = :journal_day_id
         """
 
-        conn = self._get_conn()
-
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(select_sql, (journal_day_id,))
-                rows = cur.fetchall()
-                return [Food(food_id=row[0], journal_day_id=journal_day_id, name=row[1], calories=row[2], meal_type=row[3]) for row in rows]
-        finally:
-            conn.close()
+        with engine.connect() as conn:
+            rows = conn.execute(text(sql), {"journal_day_id": journal_day_id}).fetchall()
+            return [
+                Food(food_id=row.id, journal_day_id=journal_day_id, name=row.name, calories=row.calories, meal_type=row.meal_type)
+                for row in rows
+            ]
 
     def list_food_by_week(self, user_id: int) -> List[Food]:
-        select_sql = """
+        sql = """
             SELECT f.id, f.journal_day_id, f.name, f.calories, f.meal_type
             FROM food f
             JOIN journal_day jd ON f.journal_day_id = jd.id
-            WHERE jd.user_id = %s AND jd.date >= CURDATE() - INTERVAL 7 DAY
+            WHERE jd.user_id = :user_id
+            AND jd.date >= CURRENT_DATE - INTERVAL '7 days'
         """
 
-        conn = self._get_conn()
-
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(select_sql, (user_id,))
-                rows = cur.fetchall()
-                return [Food(food_id=row[0], journal_day_id=row[1], name=row[2], calories=row[3], meal_type=row[4]) for row in rows]
-        finally:
-            conn.close()
+        with engine.connect() as conn:
+            rows = conn.execute(text(sql), {"user_id": user_id}).fetchall()
+            return [
+                Food(food_id=row.id, journal_day_id=row.journal_day_id, name=row.name, calories=row.calories, meal_type=row.meal_type)
+                for row in rows
+            ]
 
             
     def delete_food(self, food_id: int) -> bool:
-        delete_sql = """
-            DELETE FROM food WHERE id = %s
-        """
+        sql = "DELETE FROM food WHERE id = :id"
 
-        conn = self._get_conn()
+        with engine.begin() as conn:
+            result = conn.execute(text(sql), {"id": food_id})
+            return result.rowcount > 0
 
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(delete_sql, (food_id,))
-                conn.commit()
-                return cur.rowcount > 0
-        finally:
-            conn.close()
 
     #------------- CRUD FOR Transaction ----------------
     def add_transaction(self, journal_day_id: int, name: str, amount: int, category: str) -> Transaction:
-        insert_sql = """
+        sql = """
             INSERT INTO transactions (journal_day_id, name, amount, category)
-            VALUES (%s, %s, %s, %s)
+            VALUES (:journal_day_id, :name, :amount, :category)
+            RETURNING id;
         """
 
-        conn = self._get_conn()
-
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(insert_sql, (journal_day_id, name, amount, category))
-                conn.commit()
-                transaction_id = cur.lastrowid
-                return Transaction(transaction_id=transaction_id, journal_day_id=journal_day_id, name=name, amount=amount, category=category)
-        finally:
-            conn.close()
+        with engine.begin() as conn:
+            result = conn.execute(
+                text(sql),
+                {
+                    "journal_day_id": journal_day_id,
+                    "name": name,
+                    "amount": amount,
+                    "category": category
+                }
+            )
+            transaction_id = result.scalar()
+            return Transaction(transaction_id=transaction_id, journal_day_id=journal_day_id, name=name, amount=amount, category=category)
 
     def list_transactions_by_journal_day(self, journal_day_id: int) -> List[Transaction]:
-        select_sql = """
-            SELECT id, name, amount, category FROM transactions WHERE journal_day_id = %s
+        sql = """
+            SELECT id, name, amount, category
+            FROM transactions
+            WHERE journal_day_id = :journal_day_id
         """
 
-        conn = self._get_conn()
+        with engine.connect() as conn:
+            rows = conn.execute(text(sql), {"journal_day_id": journal_day_id}).fetchall()
+            return [
+                Transaction(transaction_id=row.id, journal_day_id=journal_day_id, name=row.name, amount=row.amount, category=row.category)
+                for row in rows
+            ]
 
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(select_sql, (journal_day_id,))
-                rows = cur.fetchall()
-                return [Transaction(transaction_id=row[0], journal_day_id=journal_day_id, name=row[1], amount=row[2], category=row[3]) for row in rows]
-        finally:
-            conn.close()
     def list_transactions_by_week(self, user_id: int) -> List[Transaction]:
-        select_sql = """
+        sql = """
             SELECT t.id, t.journal_day_id, t.name, t.amount, t.category
             FROM transactions t
             JOIN journal_day jd ON t.journal_day_id = jd.id
-            WHERE jd.user_id = %s AND jd.date >= CURDATE() - INTERVAL 7 DAY
+            WHERE jd.user_id = :user_id
+            AND jd.date >= CURRENT_DATE - INTERVAL '7 days'
         """
 
-        conn = self._get_conn()
-
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(select_sql, (user_id,))
-                rows = cur.fetchall()
-                return [Transaction(transaction_id=row[0], journal_day_id=row[1], name=row[2], amount=row[3], category=row[4]) for row in rows]
-        finally:
-            conn.close()
+        with engine.connect() as conn:
+            rows = conn.execute(text(sql), {"user_id": user_id}).fetchall()
+            return [
+                Transaction(transaction_id=row.id, journal_day_id=row.journal_day_id, name=row.name, amount=row.amount, category=row.category)
+                for row in rows
+            ]
 
     def delete_transaction(self, transaction_id: int) -> bool:
-        delete_sql = """
-            DELETE FROM transactions WHERE id = %s
-        """
+        sql = "DELETE FROM transactions WHERE id = :id"
 
-        conn = self._get_conn()
+        with engine.begin() as conn:
+            result = conn.execute(text(sql), {"id": transaction_id})
+            return result.rowcount > 0
 
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(delete_sql, (transaction_id,))
-                conn.commit()
-                return cur.rowcount > 0
-        finally:
-            conn.close()
 
     #------------- CRUD FOR Exercise ----------------
     def add_exercise(self, journal_day_id: int, name: str, duration: int, calories: int) -> Exercise:
-        insert_sql = """
+        sql = """
             INSERT INTO exercise (journal_day_id, name, duration, calories)
-            VALUES (%s, %s, %s, %s)
+            VALUES (:journal_day_id, :name, :duration, :calories)
+            RETURNING id;
         """
 
-        conn = self._get_conn()
-
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(insert_sql, (journal_day_id, name, duration, calories))
-                conn.commit()
-                exercise_id = cur.lastrowid
-                return Exercise(exercise_id=exercise_id, journal_day_id=journal_day_id, name=name, duration=duration, calories=calories)
-        finally:
-            conn.close()
+        with engine.begin() as conn:
+            result = conn.execute(
+                text(sql),
+                {
+                    "journal_day_id": journal_day_id,
+                    "name": name,
+                    "duration": duration,
+                    "calories": calories
+                }
+            )
+            exercise_id = result.scalar()
+            return Exercise(exercise_id=exercise_id, journal_day_id=journal_day_id, name=name, duration=duration, calories=calories)
 
     def list_exercises_by_journal_day(self, journal_day_id: int) -> List[Exercise]:
-        select_sql = """
-            SELECT id, name, duration, calories FROM exercise WHERE journal_day_id = %s
+        sql = """
+            SELECT id, name, duration, calories
+            FROM exercise
+            WHERE journal_day_id = :journal_day_id
         """
 
-        conn = self._get_conn()
-
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(select_sql, (journal_day_id,))
-                rows = cur.fetchall()
-                return [Exercise(exercise_id=row[0], journal_day_id=journal_day_id, name=row[1], duration=row[2], calories=row[3]) for row in rows]
-        finally:
-            conn.close()
+        with engine.connect() as conn:
+            rows = conn.execute(text(sql), {"journal_day_id": journal_day_id}).fetchall()
+            return [
+                Exercise(exercise_id=row.id, journal_day_id=journal_day_id, name=row.name, duration=row.duration, calories=row.calories)
+                for row in rows
+            ]
 
     def delete_exercise(self, exercise_id: int) -> bool:
-        delete_sql = """
-            DELETE FROM exercise WHERE id = %s
-        """
+        sql = "DELETE FROM exercise WHERE id = :id"
 
-        conn = self._get_conn()
+        with engine.begin() as conn:
+            result = conn.execute(text(sql), {"id": exercise_id})
+            return result.rowcount > 0
 
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(delete_sql, (exercise_id,))
-                conn.commit()
-                return cur.rowcount > 0
-        finally:
-            conn.close()
             
     def list_exercise_by_week(self, user_id: int) -> List[Exercise]:
-        select_sql = """
+        sql = """
             SELECT e.id, e.journal_day_id, e.name, e.duration, e.calories
             FROM exercise e
             JOIN journal_day jd ON e.journal_day_id = jd.id
-            WHERE jd.user_id = %s AND jd.date >= CURDATE() - INTERVAL 7 DAY
+            WHERE jd.user_id = :user_id
+            AND jd.date >= CURRENT_DATE - INTERVAL '7 days'
         """
 
-        conn = self._get_conn()
+        with engine.connect() as conn:
+            rows = conn.execute(text(sql), {"user_id": user_id}).fetchall()
+            return [
+                Exercise(exercise_id=row.id, journal_day_id=row.journal_day_id, name=row.name, duration=row.duration, calories=row.calories)
+                for row in rows
+            ]
 
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(select_sql, (user_id,))
-                rows = cur.fetchall()
-                return [Exercise(exercise_id=row[0], journal_day_id=row[1], name=row[2], duration=row[3], calories=row[4]) for row in rows]
-        finally:
-            conn.close()
 #------------- CRUD FOR Mood ----------------
 
     def add_mood(self, journal_day_id: int, user_id: int, mood: str, reflection: str) -> None:
-        insert_sql = """
+        sql = """
             INSERT INTO journal_day (id, user_id, date, mood, reflection)
-            VALUES (%s, %s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE mood = %s, reflection = %s
+            VALUES (:id, :user_id, CURRENT_DATE, :mood, :reflection)
+            ON CONFLICT (id)
+            DO UPDATE SET mood = EXCLUDED.mood,
+                          reflection = EXCLUDED.reflection;
         """
 
-        conn = self._get_conn()
+        with engine.begin() as conn:
+            conn.execute(
+                text(sql),
+                {
+                    "id": journal_day_id,
+                    "user_id": user_id,
+                    "mood": mood,
+                    "reflection": reflection
+                }
+            )
 
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(
-                    insert_sql,
-                    (
-                        journal_day_id,
-                        user_id,
-                        date.today(),
-                        mood,
-                        reflection,
-                        mood,
-                        reflection
-                    )
-                )
-                conn.commit()
-        finally:
-            conn.close()
         
     def list_mood_by_week(self, user_id: int) -> List[str]:
-        select_sql = """
+        sql = """
             SELECT mood
             FROM journal_day
-            WHERE user_id = %s AND date >= CURDATE() - INTERVAL 7 DAY
+            WHERE user_id = :user_id
+            AND date >= CURRENT_DATE - INTERVAL '7 days'
         """
 
-        conn = self._get_conn()
-
-        try:
-            with conn.cursor(buffered=True) as cur:
-                cur.execute(select_sql, (user_id,))
-                rows = cur.fetchall()
-                return [row[0] for row in rows]
-        finally:
-            conn.close()
+        with engine.connect() as conn:
+            rows = conn.execute(text(sql), {"user_id": user_id}).fetchall()
+            return [row.mood for row in rows]
